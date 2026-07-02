@@ -1,0 +1,591 @@
+import pc from 'picocolors';
+import { loadConfig } from '../config';
+import { findWorkspaceRoot } from '../workspace/finder';
+
+export type Language = 'en' | 'ja';
+
+/**
+ * Detects the system language.
+ * Default is English. If Japanese is detected in environment variables, returns 'ja'.
+ */
+export function getSystemLanguage(): Language {
+  const envs = [
+    process.env.LANG,
+    process.env.LANGUAGE,
+    process.env.LC_ALL,
+    process.env.LC_MESSAGES
+  ];
+  for (const env of envs) {
+    if (env && env.toLowerCase().includes('ja')) {
+      return 'ja';
+    }
+  }
+  return 'en';
+}
+
+/**
+ * Gets the current active language.
+ * Looks up the workspace config first, then falls back to system language.
+ */
+export function getLanguage(workspaceRoot?: string): Language {
+  let root = workspaceRoot;
+  if (!root) {
+    try {
+      root = findWorkspaceRoot();
+    } catch {
+      // Not in workspace
+    }
+  }
+
+  if (root) {
+    try {
+      const config = loadConfig(root);
+      if (config.lang === 'ja' || config.lang === 'en') {
+        return config.lang;
+      }
+    } catch {
+      // Ignore config loading errors
+    }
+  }
+
+  return getSystemLanguage();
+}
+
+// Translations dictionary
+export const MESSAGES = {
+  // Common / Errors
+  workspaceNotFound: {
+    en: '.atcoder-next/ directory was not found. Please run "atc init" in your workspace root first.',
+    ja: '.atcoder-next/ ディレクトリが見つかりませんでした。先にワークスペースのルートで "atc init" を実行してください。'
+  },
+  
+  // CLI Command Descriptions
+  descInit: {
+    en: 'Initialize .atcoder-next/ workspace and configure .gitignore',
+    ja: 'AtCoder Next ワークスペース (.atcoder-next/) を初期化し、.gitignore を設定します'
+  },
+  descLogin: {
+    en: 'Log in to AtCoder',
+    ja: 'AtCoder にログインします'
+  },
+  descLogout: {
+    en: 'Discard the local session Cookie',
+    ja: 'ローカルに保存されているセッションクッキーを破棄してログアウトします'
+  },
+  descWhoami: {
+    en: 'Verify and display current login status',
+    ja: '現在のログイン状態を確認・表示します'
+  },
+  descNew: {
+    en: 'Create task directories and download sample cases',
+    ja: '問題用フォルダを作成し、サンプルテストケースをダウンロードします'
+  },
+  descTest: {
+    en: 'Run local tests against downloaded sample cases',
+    ja: 'ダウンロードしたサンプルケースに対してローカルテストを実行します'
+  },
+  descSubmit: {
+    en: 'Submit code to AtCoder',
+    ja: 'コードを AtCoder に提出します'
+  },
+  descLang: {
+    en: 'Change the display language (en or ja)',
+    ja: '表示言語の切り替え (en または ja)'
+  },
+  descAddLang: {
+    en: 'Add a programming language configuration and template',
+    ja: 'プログラミング言語の設定とテンプレートを追加します'
+  },
+  descDefaultLang: {
+    en: 'Change the default programming language for the workspace',
+    ja: 'ワークスペースのデフォルトプログラミング言語を変更します'
+  },
+  descTools: {
+    en: 'Utilities and tools for competitive programming',
+    ja: '競技プログラミング用のユーティリティツール'
+  },
+  descBundle: {
+    en: 'Bundle multiple source files into a single file with include expansions',
+    ja: 'インクルード文を展開して、複数のソースファイルを1つのファイルにまとめます'
+  },
+  bundleSuccess: {
+    en: (output: string) => `Successfully bundled files into ${output}`,
+    ja: (output: string) => `ファイルを ${output} に正常にまとめました`
+  },
+
+  // init
+  initIntro: {
+    en: 'AtCoder Next - Workspace Initialization',
+    ja: 'AtCoder Next - ワークスペース初期化'
+  },
+  initSelectDisplayLang: {
+    en: 'Select display language:',
+    ja: '表示言語を選択してください:'
+  },
+  initSelectExtractProblem: {
+    en: 'Extract problem statements automatically?',
+    ja: '問題文を自動で抽出（problem.mdの作成）しますか？'
+  },
+  initSelectProblemLang: {
+    en: 'Select language for problem statements:',
+    ja: '抽出する問題文の言語を選択してください:'
+  },
+  initSelectLang: {
+    en: 'Select your default programming language:',
+    ja: 'デフォルトのプログラミング言語を選択してください:'
+  },
+  initCancelled: {
+    en: 'Initialization cancelled.',
+    ja: '初期化がキャンセルされました。'
+  },
+  initSpinner: {
+    en: 'Initializing workspace...',
+    ja: 'ワークスペースを初期化中...'
+  },
+  initFilesSet: {
+    en: 'Workspace files set up.',
+    ja: 'ワークスペースファイルがセットアップされました。'
+  },
+  initAlreadyInitialized: {
+    en: '.atcoder-next/ directory already exists. Preserved existing configurations.',
+    ja: '.atcoder-next/ ディレクトリは既に存在します。既存の設定は保持されました。'
+  },
+  initCreatedConfig: {
+    en: (lang: string) => `Created .atcoder-next/ configuration (default language: ${lang}) and template folders.`,
+    ja: (lang: string) => `.atcoder-next/ 設定ファイル（デフォルト言語: ${lang}）とテンプレートフォルダを作成しました。`
+  },
+  initGitignoreUpdated: {
+    en: 'Added .atcoder-next/session.json to .gitignore to keep your credentials safe.',
+    ja: '認証情報を安全に保つため、.atcoder-next/session.json を .gitignore に追加しました。'
+  },
+  initOutro: {
+    en: 'Initialization complete! You can now run "atc login".',
+    ja: '初期化が完了しました！ "atc login" を実行できます。'
+  },
+  initOutroNoLogin: {
+    en: 'Initialization complete! You can now run "atc new <contest_id eg. abc123>" to set up a contest.',
+    ja: '初期化が完了しました！ "atc new <contest_id 例: abc123>" を実行してコンテストをセットアップできます。'
+  },
+
+  // login
+  loginIntro: {
+    en: 'AtCoder Next - Login',
+    ja: 'AtCoder Next - ログイン'
+  },
+  loginNote: {
+    en: `Please copy your REVEL_SESSION cookie from your browser and paste it here.\n` +
+        `To find it: Open developer tools (F12) on atcoder.jp -> Application / Storage -> Cookies -> REVEL_SESSION`,
+    ja: `ブラウザから REVEL_SESSION クッキーをコピーして、ここに貼り付けてください。\n` +
+        `確認方法: atcoder.jp で開発者ツール (F12) を開く -> アプリケーション/ストレージ -> クッキー -> REVEL_SESSION`
+  },
+  loginWelcome: {
+    en: (username: string) => `Welcome, ${pc.bold(username)}! Session successfully validated and saved.`,
+    ja: (username: string) => `ようこそ、${pc.bold(username)}さん！セッションが正常に検証され、保存されました。`
+  },
+  loginEnterCookie: {
+    en: 'Enter your AtCoder REVEL_SESSION cookie value:',
+    ja: 'AtCoder の REVEL_SESSION クッキーの値を入力してください:'
+  },
+  loginPlaceholder: {
+    en: 'REVEL_SESSION=...',
+    ja: 'REVEL_SESSION=...'
+  },
+  loginCookieNotEmpty: {
+    en: 'Cookie value cannot be empty.',
+    ja: 'クッキーの値を空にすることはできません。'
+  },
+  loginCancelled: {
+    en: 'Login cancelled.',
+    ja: 'ログインがキャンセルされました。'
+  },
+  loginVerifying: {
+    en: 'Verifying REVEL_SESSION cookie...',
+    ja: 'REVEL_SESSION クッキーを検証中...'
+  },
+  loginVerifySuccess: {
+    en: 'Cookie verified successfully!',
+    ja: 'クッキーの検証に成功しました！'
+  },
+  loginVerifyFailed: {
+    en: 'Verification failed.',
+    ja: '検証に失敗しました。'
+  },
+  loginRetryConfirm: {
+    en: 'Would you like to try entering the cookie again?',
+    ja: 'クッキーをもう一度入力しますか？'
+  },
+  loginAborted: {
+    en: 'Login aborted.',
+    ja: 'ログインが中断されました。'
+  },
+  loginMethodSelect: {
+    en: 'Choose login method:',
+    ja: 'ログイン方法を選択してください:'
+  },
+  loginMethodBrowserAuto: {
+    en: 'Browser (Recommended)',
+    ja: 'ブラウザ (推奨)'
+  },
+  loginMethodCookie: {
+    en: 'Manually enter Cookie',
+    ja: 'クッキーを手動入力'
+  },
+  loginNoBrowserDetected: {
+    en: 'No chromium-based browsers were automatically detected.',
+    ja: 'Chromium系のブラウザが自動検出されませんでした。'
+  },
+  loginSelectBrowser: {
+    en: 'Select a browser to launch:',
+    ja: '起動するブラウザを選択してください:'
+  },
+  loginLaunchingBrowser: {
+    en: (port: number) => `Launching browser and waiting for remote debugging connection on port ${port}...`,
+    ja: (port: number) => `ブラウザを起動し、ポート ${port} でリモートデバッグの接続を待機中...`
+  },
+  loginWaitingInBrowser: {
+    en: 'Please log in to AtCoder in the opened browser window. We will automatically detect when you are logged in.',
+    ja: '開いたブラウザで AtCoder にログインしてください。ログイン完了が自動的に検出されます。'
+  },
+  loginConnectionFailed: {
+    en: 'Failed to connect to the browser. Make sure it is running with remote debugging enabled.',
+    ja: 'ブラウザへの接続に失敗しました。リモートデバッグが有効で起動しているか確認してください。'
+  },
+  loginBrowserClosed: {
+    en: 'Browser session was closed or login was aborted.',
+    ja: 'ブラウザセッションが閉じられたか、ログインが中断されました。'
+  },
+  loginTimeout: {
+    en: 'Login timed out.',
+    ja: 'ログインの制限時間を超過しました。'
+  },
+
+
+  // logout
+  logoutSuccess: {
+    en: 'Session cleared. You are logged out.',
+    ja: 'セッションがクリアされました。ログアウトしました。'
+  },
+
+  // whoami
+  whoamiVerifying: {
+    en: 'Verifying session...',
+    ja: 'セッションを検証中...'
+  },
+  whoamiLoggedIn: {
+    en: (username: string) => `Logged in as: ${pc.bold(pc.cyan(username))}`,
+    ja: (username: string) => `ログイン中: ${pc.bold(pc.cyan(username))}`
+  },
+
+  // new
+  newContestDirExists: {
+    en: (contestId: string) => `Contest directory "${contestId}" already exists. If you want to recreate it, please delete or rename it manually first.`,
+    ja: (contestId: string) => `コンテストディレクトリ "${contestId}" は既に存在します。再作成したい場合は、手動で削除またはリネームしてください。`
+  },
+  newIntro: {
+    en: (contestId: string) => `Scaffolding Contest: ${contestId}`,
+    ja: (contestId: string) => `コンテストのセットアップ開始: ${contestId}`
+  },
+  newFetchingTasks: {
+    en: (contestId: string) => `Fetching tasks for contest ${contestId}...`,
+    ja: (contestId: string) => `コンテスト ${contestId} の問題を読み込み中...`
+  },
+  newFoundTasks: {
+    en: (count: number) => `Found ${count} tasks.`,
+    ja: (count: number) => `${count} 個の問題が見つかりました。`
+  },
+  newNoTasksFound: {
+    en: (contestId: string) => `No tasks found for contest "${contestId}". Make sure the contest ID is correct.`,
+    ja: (contestId: string) => `コンテスト "${contestId}" の問題が見つかりませんでした。コンテストIDが正しいか確認してください。`
+  },
+  newLabelNotFound: {
+    en: (label: string, contestId: string, available: string) => `Task label "${label}" not found in contest "${contestId}". Available tasks: ${available}`,
+    ja: (label: string, contestId: string, available: string) => `問題ラベル "${label}" がコンテスト "${contestId}" に見つかりません。利用可能な問題: ${available}`
+  },
+  newMultiselectMessage: {
+    en: "Which tasks do you want to set up? (Space: select, 'a': toggle all, Enter: confirm)",
+    ja: "どの問題をセットアップしますか？（Space: 選択, 'a': 全選択/解除, Enter: 決定）"
+  },
+  newCancelled: {
+    en: 'Scaffolding cancelled.',
+    ja: 'セットアップがキャンセルされました。'
+  },
+  newSettingUpTask: {
+    en: (label: string, id: string) => `Setting up task ${label} (${id})...`,
+    ja: (label: string, id: string) => `問題 ${label} (${id}) をセットアップ中...`
+  },
+  newSetupSuccess: {
+    en: (label: string, count: number) => `Task ${label} set up with ${count} samples.`,
+    ja: (label: string, count: number) => `問題 ${label} を ${count} 個のサンプルでセットアップしました。`
+  },
+  newScaffoldingComplete: {
+    en: (count: number) => `Scaffolding complete for ${count} task(s).`,
+    ja: (count: number) => `${count} 個の問題のセットアップが完了しました。`
+  },
+  newStatementSkippedContestActiveTitle: {
+    en: '[WARNING] Problem statement extraction skipped',
+    ja: '【警告】問題文の抽出をスキップしました'
+  },
+  newStatementSkippedContestActiveBody: {
+    en: '• Problem statement Markdown was NOT downloaded because this contest is currently active.',
+    ja: '・コンテスト実施中のため、問題文のMarkdownのダウンロードをスキップしました。'
+  },
+  newStatementWarningTitle: {
+    en: '[WARNING] Automatic problem statement extraction is enabled',
+    ja: '【警告】問題文の自動抽出が有効化されています'
+  },
+  newStatementWarningBody: {
+    en: '• DO NOT feed the problem statement Markdown to Generative AI during a rated contest (violates rules).\n• DO NOT publish or share the extracted problem statement on the internet (e.g. public GitHub repos).',
+    ja: '・コンテスト中に問題文のMarkdownを生成AIに読み込ませないでください（ルール違反となります）。\n・抽出した問題文をそのままインターネット（GitHubパブリックリポジトリ等）に公開・共有しないでください。'
+  },
+
+  // test
+  testIntro: {
+    en: (contestId: string, label: string) => `Running tests for ${contestId}/${label}`,
+    ja: (contestId: string, label: string) => `テスト実行中: ${contestId}/${label}`
+  },
+  testRetrievingLimits: {
+    en: 'Retrieving problem time limits...',
+    ja: '問題の実行時間制限を取得中...'
+  },
+  testLoadedLimits: {
+    en: (limit: number) => `Loaded limits (Time Limit: ${limit} ms)`,
+    ja: (limit: number) => `時間制限をロードしました (制限時間: ${limit} ms)`
+  },
+  testDefaultLimits: {
+    en: 'Using default time limit of 2000 ms (task info not found).',
+    ja: 'デフォルトの時間制限 2000 ms を使用します（問題情報が見つかりません）。'
+  },
+  testDefaultLimitsError: {
+    en: 'Using default time limit of 2000 ms.',
+    ja: 'デフォルトの時間制限 2000 ms を使用します。'
+  },
+  testCompilingRunning: {
+    en: 'Compiling and running test cases...',
+    ja: 'コンパイルおよびテストケース実行中...'
+  },
+  testFinished: {
+    en: 'Test run finished.',
+    ja: 'テスト実行が完了しました。'
+  },
+  testCompilationFailed: {
+    en: 'Compilation Failed:',
+    ja: 'コンパイル失敗:'
+  },
+  testNoSamples: {
+    en: 'No sample test cases found in tests/ directory.',
+    ja: 'tests/ ディレクトリにサンプルテストケースが見つかりませんでした。'
+  },
+  testOutroPassed: {
+    en: 'All tests passed! 🎉',
+    ja: 'すべてのテストに合格しました！ 🎉'
+  },
+  testOutroFailed: {
+    en: 'Some tests failed. 😢',
+    ja: 'テストに失敗しました。 😢'
+  },
+
+  // submit
+  submitPreparing: {
+    en: (contestId: string, label: string) => `Preparing Submission for ${contestId}/${label}`,
+    ja: (contestId: string, label: string) => `提出準備中: ${contestId}/${label}`
+  },
+  submitRetrievingLimits: {
+    en: 'Retrieving problem time limits for testing...',
+    ja: 'テスト用の実行時間制限を取得中...'
+  },
+  submitRunningTests: {
+    en: 'Running local tests...',
+    ja: 'ローカルテストを実行中...'
+  },
+  submitNoSamples: {
+    en: 'No sample test cases found. Skipping tests.',
+    ja: 'サンプルテストケースが見つかりませんでした。テストをスキップします。'
+  },
+  submitTestsFailed: {
+    en: 'Some local test cases failed!',
+    ja: '一部のローカルテストケースが不合格でした！'
+  },
+  submitConfirmMessage: {
+    en: 'Do you still want to submit to AtCoder?',
+    ja: 'AtCoder にコードを提出しますか？'
+  },
+  submitAborted: {
+    en: 'Submission aborted.',
+    ja: '提出が中止されました。'
+  },
+  submitTestsPassed: {
+    en: 'All local tests passed! Proceeding to submit...',
+    ja: 'すべてのローカルテストに合格しました！提出中...'
+  },
+  submitSubmitting: {
+    en: 'Submitting code...',
+    ja: 'コードを提出中...'
+  },
+  submitSuccess: {
+    en: (id: string) => `Submitted successfully! Submission ID: ${pc.bold(id)}`,
+    ja: (id: string) => `提出が成功しました！ 提出ID: ${pc.bold(id)}`
+  },
+  submitWaitingJudge: {
+    en: 'Waiting for judge status...',
+    ja: 'ジャッジ状況を待機中...'
+  },
+  submitJudgeFinished: {
+    en: (status: string) => `Judge Finished: ${status}`,
+    ja: (status: string) => `ジャッジ完了: ${status}`
+  },
+  submitAccepted: {
+    en: 'Accepted! 🎉',
+    ja: '正解 (AC) です！ 🎉'
+  },
+  submitFailed: {
+    en: 'Judge Failed.',
+    ja: 'ジャッジ失敗。'
+  },
+  submitTimeout: {
+    en: 'Polling timed out.',
+    ja: 'タイムアウトしました。'
+  },
+  submitTimeoutWarn: {
+    en: (url: string) => `The submission status was not determined in time. View details at: https://atcoder.jp${url}`,
+    ja: (url: string) => `時間内に提出ステータスを判定できませんでした。詳細は以下で確認してください: https://atcoder.jp${url}`
+  },
+  submitTurnstileDetected: {
+    en: 'Cloudflare Turnstile challenge detected. Automated CLI submissions are blocked by AtCoder\'s bot protection. Please submit via your browser.',
+    ja: 'Cloudflare Turnstile チャレンジが検出されました。AtCoderの保護機能によりCLIからの自動提出がブロックされています。ブラウザから提出してください。'
+  },
+  submitRejected: {
+    en: 'Submission rejected by AtCoder. Please verify if your session is valid or if you are rate-limited.',
+    ja: 'AtCoderにより提出が拒否されました。ログイン状態や短時間での連続提出でないか確認してください。'
+  },
+  submitFallbackMessage: {
+    en: (langName: string) => `We have opened the submission page in your default browser. Please select the appropriate language and submit your code manually.`,
+    ja: (langName: string) => `デフォルトのブラウザで提出ページを開きました。適切な言語を選択し、手動でコードを提出してください。`
+  },
+  submitFallbackMessageWithClipboard: {
+    en: `We have opened the submission page in your default browser and copied your code to the clipboard.\nPlease select the appropriate language, paste (Cmd+V), and submit manually.`,
+    ja: `デフォルトのブラウザで提出ページを開き、コードをクリップボードにコピーしました。\n適切な言語を選択し、ペースト（Cmd+V）して手動で提出してください。`
+  },
+  submitAutomatedFallback: {
+    en: 'We have launched the browser with your code pasted and language selected. Please review and click "Submit". The browser will close automatically.',
+    ja: 'コードの貼り付けと言語選択を完了した状態でブラウザを起動しました。内容を確認して「提出」ボタンを押してください。提出完了後にブラウザは自動的に閉じます。'
+  },
+  submitManualSubmission: {
+    en: 'Manual Submission',
+    ja: '手動提出へ切り替え'
+  },
+
+  // lang command
+  langSuccess: {
+    en: (l: string) => `Display language changed to: ${l}`,
+    ja: (l: string) => `表示言語を変更しました: ${l}`
+  },
+  langInvalid: {
+    en: 'Invalid language. Please specify "en" or "ja".',
+    ja: '無効な言語です。"en" または "ja" を指定してください。'
+  },
+  langWorkspaceRequired: {
+    en: 'Display language can only be configured inside an AtCoder workspace. Please run "atc init" first.',
+    ja: '表示言語の設定は AtCoder ワークスペース内でのみ可能です。先に "atc init" を実行してください。'
+  },
+  langCommandUsage: {
+    en: 'Usage: atc lang <en|ja>',
+    ja: '使い方: atc lang <en|ja>'
+  },
+  langSelectMessage: {
+    en: 'Select display language:',
+    ja: '表示言語を選択してください:'
+  },
+  langCancelled: {
+    en: 'Language selection cancelled.',
+    ja: '言語選択がキャンセルされました。'
+  },
+  submitSessionExpired: {
+    en: 'Session expired or invalid. Please log in again using "atc login".',
+    ja: 'セッションの期限が切れているか無効です。"atc login" を実行して再ログインしてください。'
+  },
+  submitLangSelectNotFound: {
+    en: 'Language selection element not found on submit page. Please make sure you are logged in and the contest has started.',
+    ja: '提出ページに言語選択要素が見つかりませんでした。ログイン状態であること、およびコンテストが開始されていることを確認してください。'
+  },
+  addLangSelectName: {
+    en: 'Select the programming language to add:',
+    ja: '追加するプログラミング言語を選択してください:'
+  },
+  addLangSelectOther: {
+    en: 'Other (Specify...)',
+    ja: 'その他 (直接入力)'
+  },
+  addLangAlreadyExists: {
+    en: (lang: string) => `Language "${lang}" is already configured.`,
+    ja: (lang: string) => `言語 "${lang}" は既に設定されています。`
+  },
+  addLangEnterName: {
+    en: 'Enter the programming language name to add:',
+    ja: '追加するプログラミング言語名を入力してください:'
+  },
+  addLangNameNotEmpty: {
+    en: 'Language name cannot be empty.',
+    ja: '言語名は空にすることはできません。'
+  },
+  addLangCancelled: {
+    en: 'Language addition cancelled.',
+    ja: '言語の追加がキャンセルされました。'
+  },
+  addLangEnterExtension: {
+    en: (lang: string) => `Enter file extension for ${lang}:`,
+    ja: (lang: string) => `${lang} のファイル拡張子を入力してください:`
+  },
+  addLangExtNotEmpty: {
+    en: 'Extension cannot be empty.',
+    ja: '拡張子は空にすることはできません。'
+  },
+  addLangEnterBuildCmd: {
+    en: 'Enter build command (leave empty if not needed):',
+    ja: 'ビルドコマンドを入力してください (不要な場合は空欄のまま):'
+  },
+  addLangEnterRunCmd: {
+    en: 'Enter execution command:',
+    ja: '実行コマンドを入力してください:'
+  },
+  addLangRunCmdNotEmpty: {
+    en: 'Execution command cannot be empty.',
+    ja: '実行コマンドは空にすることはできません。'
+  },
+  addLangSpinner: {
+    en: 'Adding language configuration...',
+    ja: '言語設定を追加中...'
+  },
+  addLangSuccess: {
+    en: (lang: string) => `Language "${lang}" added successfully!`,
+    ja: (lang: string) => `言語 "${lang}" が正常に追加されました！`
+  },
+  defaultLangSelectMessage: {
+    en: 'Select the new default programming language:',
+    ja: '新しいデフォルトのプログラミング言語を選択してください:'
+  },
+  defaultLangNotConfigured: {
+    en: (lang: string) => `Language "${lang}" is not configured in this workspace. Please add it first using "atc add-lang".`,
+    ja: (lang: string) => `言語 "${lang}" はこのワークスペースで設定されていません。先に "atc add-lang" で追加してください。`
+  },
+  defaultLangSuccess: {
+    en: (lang: string) => `Default programming language successfully changed to: ${lang}`,
+    ja: (lang: string) => `デフォルトのプログラミング言語を正常に変更しました: ${lang}`
+  },
+  defaultLangCancelled: {
+    en: 'Default language change cancelled.',
+    ja: 'デフォルト言語の変更がキャンセルされました。'
+  }
+};
+
+/**
+ * Translates a key into the active language.
+ */
+export const t = (key: keyof typeof MESSAGES, lang: Language, ...args: any[]): string => {
+  const item = MESSAGES[key];
+  if (!item) return String(key);
+  const msg = (item as any)[lang] || (item as any)['en'];
+  if (typeof msg === 'function') {
+    return msg(...args);
+  }
+  return msg;
+};
