@@ -4,6 +4,7 @@ test
 dist
 node_modules
 *.tgz
+logs
 
 # AtCoder problem statements
 problem.md

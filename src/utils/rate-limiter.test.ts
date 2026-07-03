@@ -49,6 +49,13 @@ describe('rate-limiter', () => {
   });
 
   it('should recover consecutive requests over time', async () => {
+    saveGlobalConfig({
+      minDelay: 200,
+      maxDelay: 600,
+      decayRate: 0.1,
+      recoveryRate: 1.0
+    }, TEST_DIR);
+
     saveState({
       lastRequestTime: Date.now(),
       consecutiveRequests: 5

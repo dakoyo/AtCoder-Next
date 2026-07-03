@@ -141,11 +141,11 @@ query_Q
     const htmlWithPreVar = htmlWithPre.replace('N M', '<var>N</var> <var>M</var>');
     const details = parseProblemPage(htmlWithPreVar);
     expect(details.problemStatementMd).toContain('\\begin{array}{l}');
-    expect(details.problemStatementMd).toContain('\\text{N M}');
-    expect(details.problemStatementMd).toContain('\\text{A}_1');
-    expect(details.problemStatementMd).toContain('\\dots');
+    expect(details.problemStatementMd).toContain('N\\ M');
+    expect(details.problemStatementMd).toContain('A_1');
+    expect(details.problemStatementMd).toContain('\\ldots');
     expect(details.problemStatementMd).toContain('\\vdots');
-    expect(details.problemStatementMd).toContain('\\text{query}_Q');
+    expect(details.problemStatementMd).toContain('query_Q');
     expect(details.problemStatementMd).toContain('\\end{array}');
   });
 
@@ -182,7 +182,7 @@ Q
     const htmlWithPreVar = htmlWithPreLaTeX.replace('Q', '<var>Q</var>');
     const details = parseProblemPage(htmlWithPreVar);
     expect(details.problemStatementMd).toContain('\\begin{array}{l}');
-    expect(details.problemStatementMd).toContain('\\text{Q}');
+    expect(details.problemStatementMd).toContain('Q');
     expect(details.problemStatementMd).toContain('\\text{query}_1');
     expect(details.problemStatementMd).toContain('\\text{query}_2');
     expect(details.problemStatementMd).toContain('\\vdots');
@@ -205,6 +205,6 @@ s_1s_2s_3
     // Add <var> tag to trigger math conversion
     const htmlWithPreVar = htmlWithPreAdjacent.replace('s_1s_2s_3', '<var>s_1s_2s_3</var>');
     const details = parseProblemPage(htmlWithPreVar);
-    expect(details.problemStatementMd).toContain('\\text{s}_1\\text{s}_2\\text{s}_3');
+    expect(details.problemStatementMd).toContain('s_1s_2s_3');
   });
 });

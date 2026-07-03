@@ -9,13 +9,15 @@ vi.mock('fs', async (importOriginal) => {
   return {
     ...actual,
     existsSync: vi.fn((p: any) => {
-      if (p.toString().endsWith('my-contests/abc300/a')) {
+      const normalized = p.toString().replace(/\\/g, '/');
+      if (normalized.endsWith('my-contests/abc300/a')) {
         return true;
       }
       return actual.existsSync(p);
     }),
     statSync: vi.fn((p: any) => {
-      if (p.toString().endsWith('my-contests/abc300/a')) {
+      const normalized = p.toString().replace(/\\/g, '/');
+      if (normalized.endsWith('my-contests/abc300/a')) {
         return { isDirectory: () => true } as any;
       }
       return actual.statSync(p);
@@ -63,7 +65,8 @@ describe('runner utils', () => {
       });
 
       const resolved = resolveTaskDirectory('/workspace', 'abc300/a');
-      expect(resolved).toContain('my-contests/abc300/a');
+      const normalizedResolved = resolved.replace(/\\/g, '/');
+      expect(normalizedResolved).toContain('my-contests/abc300/a');
 
       cwdSpy.mockRestore();
       loadConfigSpy.mockRestore();
