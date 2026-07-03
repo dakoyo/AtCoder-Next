@@ -574,6 +574,203 @@ export const MESSAGES = {
   defaultLangCancelled: {
     en: 'Default language change cancelled.',
     ja: 'デフォルト言語の変更がキャンセルされました。'
+  },
+  // doctor & setup commands
+  descDoctor: {
+    en: 'Diagnose discrepancies between local toolchains and AtCoder environments',
+    ja: 'ローカルのコンパイラ・処理系バージョンとAtCoderの環境を比較・診断します'
+  },
+  descSetup: {
+    en: 'Setup and install required compilers or language managers based on diagnosis',
+    ja: '診断結果に基づき、コンパイラやバージョン管理ツールのインストール・設定を行います'
+  },
+  doctorIntro: {
+    en: 'AtCoder Next - Toolchain Diagnosis',
+    ja: 'AtCoder Next - 開発環境診断'
+  },
+  doctorSpinnerDetecting: {
+    en: 'Detecting OS and package managers...',
+    ja: 'OSとパッケージマネージャを検出中...'
+  },
+  doctorSpinnerFetchingCompilers: {
+    en: 'Fetching compiler list from AtCoder...',
+    ja: 'AtCoderからコンパイラ一覧を取得中...'
+  },
+  doctorFetchFailed: {
+    en: 'Failed to fetch compilers from AtCoder.',
+    ja: 'AtCoderからコンパイラ一覧の取得に失敗しました。'
+  },
+  doctorDetectDone: {
+    en: 'System detection complete.',
+    ja: 'システム環境の検出が完了しました。'
+  },
+  doctorNoLanguagesConfigured: {
+    en: "No languages are configured. Please run 'atc init' first.",
+    ja: '言語設定がありません。先に \'atc init\' を実行してください。'
+  },
+  doctorSelectLanguages: {
+    en: "Select languages to diagnose: (Space: select, 'a': toggle all, Enter: confirm)",
+    ja: "診断対象の言語を選択してください: (Space: 選択, 'a': 全選択/解除, Enter: 決定)"
+  },
+  doctorCheckingVersions: {
+    en: 'Checking local and remote versions...',
+    ja: 'ローカルおよびリモートのバージョンをチェック中...'
+  },
+  doctorCheckDone: {
+    en: 'Comparison complete.',
+    ja: 'バージョン比較が完了しました。'
+  },
+  doctorResultsTitle: {
+    en: 'Diagnosis Results',
+    ja: '診断結果サマリー'
+  },
+  doctorNextActionMessage: {
+    en: 'What would you like to do next?',
+    ja: '次に何を行いますか？'
+  },
+  doctorNextActionSetup: {
+    en: 'Run setup to fix version discrepancies',
+    ja: 'setupを実行してバージョン不整合を解決する'
+  },
+  doctorNextActionExit: {
+    en: 'Exit',
+    ja: '終了する'
+  },
+  doctorSetupAllConfirm: {
+    en: 'All selected languages are already matching. Run setup anyway?',
+    ja: '選択されたすべての言語は既に一致しています。それでもsetupを実行しますか？'
+  },
+  doctorFinishedNoChanges: {
+    en: 'No changes made. Goodbye!',
+    ja: '変更はありませんでした。終了します。'
+  },
+  doctorFinished: {
+    en: 'Diagnosis complete. Goodbye!',
+    ja: '環境診断が完了しました。'
+  },
+  setupIntro: {
+    en: 'AtCoder Next - Toolchain Setup',
+    ja: 'AtCoder Next - 開発環境セットアップ'
+  },
+  setupSpinnerFetchingCompilers: {
+    en: 'Fetching compiler list from AtCoder...',
+    ja: 'AtCoderからコンパイラ一覧を取得中...'
+  },
+  setupFetchFailed: {
+    en: 'Failed to fetch compilers from AtCoder.',
+    ja: 'AtCoderからコンパイラ一覧の取得に失敗しました。'
+  },
+  setupDetectDone: {
+    en: 'System detection complete.',
+    ja: 'システム環境の検出が完了しました。'
+  },
+  setupNoLanguagesConfigured: {
+    en: "No languages are configured. Please run 'atc init' first.",
+    ja: '言語設定がありません。先に \'atc init\' を実行してください。'
+  },
+  setupSelectLanguages: {
+    en: "Select languages to setup: (Space: select, 'a': toggle all, Enter: confirm)",
+    ja: "セットアップ対象の言語を選択してください: (Space: 選択, 'a': 全選択/解除, Enter: 決定)"
+  },
+  setupAlreadyMatchesConfirm: {
+    en: (langId: string, ver: string) => `Language "${langId}" already matches target version ${ver}. Reinstall?`,
+    ja: (langId: string, ver: string) => `言語 "${langId}" のバージョンは既にターゲット (${ver}) と一致しています。再インストールしますか？`
+  },
+  setupNoInstallMethods: {
+    en: (displayName: string, os: string) => `No installation methods found for ${displayName} on OS ${os}.`,
+    ja: (displayName: string, os: string) => `OS ${os} 用の ${displayName} のインストール方法が見つかりませんでした。`
+  },
+  setupSelectStrategy: {
+    en: (langId: string, ver: string) => `Select installation method for ${langId} (target: ${ver}):`,
+    ja: (langId: string, ver: string) => `${langId} のインストール方法を選択してください (ターゲット: ${ver}):`
+  },
+  setupNoWorkNeeded: {
+    en: 'No setup actions needed. Everything is up to date.',
+    ja: '必要なセットアップ操作はありません。すべて最新の状態です。'
+  },
+  setupExecutionPlanTitle: {
+    en: 'Execution Plan',
+    ja: '実行計画サマリー'
+  },
+  setupDryRunComplete: {
+    en: 'Dry run completed. No changes were made.',
+    ja: 'ドライラン（シミュレーション）が完了しました。変更は行われていません。'
+  },
+  setupProceedConfirm: {
+    en: 'Do you want to proceed with executing this plan?',
+    ja: 'この計画を実行しますか？'
+  },
+  setupAborted: {
+    en: 'Setup aborted. No changes made.',
+    ja: 'セットアップが中断されました。変更は行われていません。'
+  },
+  setupExecutingCommand: {
+    en: (idx: number, total: number, langId: string, cmd: string) => `[${idx}/${total}] [${langId}] Executing: ${cmd}`,
+    ja: (idx: number, total: number, langId: string, cmd: string) => `[${idx}/${total}] [${langId}] 実行中: ${cmd}`
+  },
+  setupCommandFailed: {
+    en: (cmd: string) => `Command failed: ${cmd}`,
+    ja: (cmd: string) => `コマンドが失敗しました: ${cmd}`
+  },
+  setupCommandRetryConfirm: {
+    en: 'Would you like to retry the failed command?',
+    ja: '失敗したコマンドを再試行しますか？'
+  },
+  setupExecutionInterrupted: {
+    en: 'Execution interrupted.',
+    ja: '処理が中断されました。'
+  },
+  setupExecutionComplete: {
+    en: 'Execution completed successfully.',
+    ja: 'すべてのコマンドが正常に実行されました。'
+  },
+  setupApplyConfigConfirm: {
+    en: 'Apply configuration changes to settings.json?',
+    ja: 'settings.json への設定反映を行いますか？'
+  },
+  setupConfigAppliedSuccess: {
+    en: 'Configuration successfully applied to settings.json.',
+    ja: 'settings.json への設定反映が成功しました。'
+  },
+  setupOutroSuccess: {
+    en: (logPath: string) => `Setup completed successfully! Log saved to: ${logPath}`,
+    ja: (logPath: string) => `セットアップが正常に完了しました！ ログは ${logPath} に保存されました。`
+  },
+  setupOutroFailed: {
+    en: 'Setup failed.',
+    ja: 'セットアップに失敗しました。'
+  },
+  selectCompiler: {
+    en: (langId: string) => `Select compiler for ${langId}:`,
+    ja: (langId: string) => `${langId} のコンパイラを選択してください:`
+  },
+  selectRuntime: {
+    en: (langId: string) => `Select runtime/compiler for ${langId}:`,
+    ja: (langId: string) => `${langId} の実行環境/コンパイラを選択してください:`
+  },
+  setupCommandFailedSelect: {
+    en: 'Command failed. How would you like to proceed?',
+    ja: 'コマンドの実行に失敗しました。どうしますか？'
+  },
+  setupCommandActionRetry: {
+    en: 'Retry this command',
+    ja: 'このコマンドを再試行する'
+  },
+  setupCommandActionSkip: {
+    en: 'Skip this command and continue',
+    ja: 'このコマンドをスキップして次へ進む'
+  },
+  setupCommandActionAbort: {
+    en: 'Abort setup',
+    ja: 'セットアップを中止する'
+  },
+  setupCancelledSettingsNotApplied: {
+    en: 'Cancelled. settings.json was not updated, but already executed installation commands remain.',
+    ja: 'キャンセルされました。settings.json への設定反映は行われませんでしたが、実行済みのコマンドはそのまま残ります。'
+  },
+  setupAbortedHalfway: {
+    en: 'Setup aborted. Already executed installation commands remain, but subsequent commands and settings updates were skipped.',
+    ja: 'セットアップを中止しました。実行済みのコマンドは残りますが、これ以降の処理および settings.json への反映はスキップされます。'
   }
 };
 

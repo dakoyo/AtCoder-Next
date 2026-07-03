@@ -32,6 +32,7 @@ import { formatOutputLines, formatErrorOutputLines } from './utils/format';
 import { getLanguage, t, getSystemLanguage } from './utils/i18n';
 import { openUrl, copyToClipboard } from './utils/open';
 import { bundleFiles } from './utils/bundler';
+import { runDoctor, runSetup } from './toolchain/cli-handlers';
 
 const workspaceRoot = (() => {
   try {
@@ -994,4 +995,30 @@ toolsCmd
     })
   );
 
+toolsCmd
+  .command('doctor')
+  .description(t('descDoctor' as any, lang))
+  .option('--refresh', 'Refresh the AtCoder compiler version cache')
+  .action(
+    handleAction(async (options: { refresh?: boolean }) => {
+      await runDoctor(options);
+    })
+  );
+
+toolsCmd
+  .command('setup [languages...]')
+  .description(t('descSetup' as any, lang))
+  .option('--refresh', 'Refresh the AtCoder compiler version cache')
+  .option('--dry-run', 'Show setup commands and diffs without running them')
+  .action(
+    handleAction(async (languages: string[], options: { refresh?: boolean; dryRun?: boolean }) => {
+      await runSetup({
+        languages: languages.length > 0 ? languages : undefined,
+        refresh: options.refresh,
+        dryRun: options.dryRun
+      });
+    })
+  );
+
 program.parse(process.argv);
+
