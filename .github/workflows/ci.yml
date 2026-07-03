@@ -11,7 +11,7 @@ jobs:
   test:
     name: Test on ${{ matrix.os }} (Node ${{ matrix.node-version }})
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -22,17 +22,28 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: npm
 
       - name: Install Dependencies
         run: npm ci
 
       - name: Type Check & Build
-        run: npm run build
+        run: npm run build 2>&1 | tee build.log
 
       - name: Run Tests
-        run: npx vitest run
+        shell: bash
+        run: |
+          npx vitest run 2>&1 | tee test.log
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.os }}
+          path: |
+            build.log
+            test.log
