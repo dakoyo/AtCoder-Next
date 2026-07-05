@@ -1,0 +1,19 @@
+{
+  "defaultLanguage": "cpp",
+  "languages": {
+    "cpp": {
+      "extension": "cpp",
+      "templateDir": "templates/cpp",
+      "build": "g++-16 -O2 -std=gnu++20 -o a.out main.cpp",
+      "run": "./a.out",
+      "submitFile": "main.cpp",
+      "atcoderLanguage": "",
+      "atcoderLanguageIdRegex": ""
+    }
+  },
+  "testDirName": "tests",
+  "contestDir": "",
+  "lang": "ja",
+  "extractProblemStatement": false,
+  "problemLang": "ja"
+}

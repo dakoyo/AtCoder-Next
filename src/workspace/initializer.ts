@@ -247,17 +247,12 @@ export function initWorkspace(
 
   // Update or create .gitignore
   const gitignorePath = path.join(targetDir, '.gitignore');
-  const ignoreSession = '.atcoder-next/session.json';
   const ignoreProblem = 'problem.md';
   let gitignoreUpdated = false;
 
   if (fs.existsSync(gitignorePath)) {
     let content = fs.readFileSync(gitignorePath, 'utf8');
     let updated = false;
-    if (!content.includes(ignoreSession)) {
-      content += (content.endsWith('\n') ? '' : '\n') + '\n# AtCoder CLI Session\n' + ignoreSession + '\n';
-      updated = true;
-    }
     if (!content.includes(ignoreProblem)) {
       content += (content.endsWith('\n') ? '' : '\n') + '\n# AtCoder problem statements\n' + ignoreProblem + '\n';
       updated = true;
@@ -267,7 +262,7 @@ export function initWorkspace(
       gitignoreUpdated = true;
     }
   } else {
-    const defaultIgnore = `# AtCoder CLI Session\n${ignoreSession}\n\n# AtCoder problem statements\n${ignoreProblem}\n`;
+    const defaultIgnore = `# AtCoder problem statements\n${ignoreProblem}\n`;
     fs.writeFileSync(gitignorePath, defaultIgnore, 'utf8');
     gitignoreUpdated = true;
   }
