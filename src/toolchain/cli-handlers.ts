@@ -284,6 +284,7 @@ export interface SetupOptions {
   refresh?: boolean;
   dryRun?: boolean;
   displayLangFromDoctor?: 'en' | 'ja';
+  yes?: boolean;
 }
 
 export async function runSetup(options: SetupOptions = {}) {
@@ -315,16 +316,20 @@ export async function runSetup(options: SetupOptions = {}) {
       p.log.error(pc.red(t('setupNoLanguagesConfigured' as any, displayLang)));
       process.exit(1);
     }
-    targetLangs = assertNotCancelled(
-      await p.multiselect({
-        message: t('setupSelectLanguages' as any, displayLang),
-        options: configuredLangs.map(langId => ({
-          value: langId,
-          label: `${langId} (${config.languages[langId].extension})`
-        })),
-        initialValues: configuredLangs
-      })
-    ) as string[];
+    if (options.yes) {
+      targetLangs = configuredLangs;
+    } else {
+      targetLangs = assertNotCancelled(
+        await p.multiselect({
+          message: t('setupSelectLanguages' as any, displayLang),
+          options: configuredLangs.map(langId => ({
+            value: langId,
+            label: `${langId} (${config.languages[langId].extension})`
+          })),
+          initialValues: configuredLangs
+        })
+      ) as string[];
+    }
   }
 
   const allSteps: { langId: string; step: InstallStep }[] = [];
@@ -336,7 +341,7 @@ export async function runSetup(options: SetupOptions = {}) {
     let toolchain = getToolchainForLang(langId, config);
     if (langId === 'cpp' || langId === 'c') {
       const currentId = toolchain?.id || 'gcc';
-      const choice = assertNotCancelled(
+      const choice = options.yes ? currentId : assertNotCancelled(
         await p.select({
           message: t('selectCompiler' as any, displayLang, langId),
           options: [
@@ -349,7 +354,7 @@ export async function runSetup(options: SetupOptions = {}) {
       toolchain = toolchainDefinitions[choice];
     } else if (langId === 'python') {
       const currentId = toolchain?.id || 'python';
-      const choice = assertNotCancelled(
+      const choice = options.yes ? currentId : assertNotCancelled(
         await p.select({
           message: t('selectRuntime' as any, displayLang, langId),
           options: [
@@ -379,6 +384,10 @@ export async function runSetup(options: SetupOptions = {}) {
     const status = localVer ? compareVersions(localVer, target.version) : 'mismatch';
     
     if (status === 'match') {
+      if (options.yes) {
+        p.log.info(`[${langId}] Already matches AtCoder version: ${localVer}. Skipping setup.`);
+        continue;
+      }
       const proceed = assertNotCancelled(
         await p.confirm({
           message: t('setupAlreadyMatchesConfirm' as any, displayLang, langId, localVer),
@@ -400,26 +409,30 @@ export async function runSetup(options: SetupOptions = {}) {
     if (plans.length === 1) {
       selectedPlan = plans[0];
     } else {
-      const choices = plans.map((p, idx) => ({
-        value: idx.toString(),
-        label: p.strategy === 'version-manager' 
-          ? `Version Manager (${toolchain.versionManager?.id}) - Recommended` 
-          : `Package Manager (${p.steps[0]?.command.split(' ')[0] || 'OS' })`
-      }));
-      choices.push({ value: 'skip', label: 'Skip installation' });
+      if (options.yes) {
+        selectedPlan = plans[0];
+      } else {
+        const choices = plans.map((p, idx) => ({
+          value: idx.toString(),
+          label: p.strategy === 'version-manager' 
+            ? `Version Manager (${toolchain.versionManager?.id}) - Recommended` 
+            : `Package Manager (${p.steps[0]?.command.split(' ')[0] || 'OS' })`
+        }));
+        choices.push({ value: 'skip', label: 'Skip installation' });
 
-      const choice = assertNotCancelled(
-        await p.select({
-          message: t('setupSelectStrategy' as any, displayLang, langId, target.version),
-          options: choices,
-          initialValue: '0'
-        })
-      ) as string;
+        const choice = assertNotCancelled(
+          await p.select({
+            message: t('setupSelectStrategy' as any, displayLang, langId, target.version),
+            options: choices,
+            initialValue: '0'
+          })
+        ) as string;
 
-      if (choice === 'skip') {
-        continue;
+        if (choice === 'skip') {
+          continue;
+        }
+        selectedPlan = plans[parseInt(choice, 10)];
       }
-      selectedPlan = plans[parseInt(choice, 10)];
     }
 
     for (const step of selectedPlan.steps) {
@@ -515,7 +528,7 @@ export async function runSetup(options: SetupOptions = {}) {
     return;
   }
 
-  const proceed = assertNotCancelled(
+  const proceed = options.yes ? true : assertNotCancelled(
     await p.confirm({
       message: t('setupProceedConfirm' as any, displayLang),
       initialValue: !requiresSudo
@@ -540,7 +553,12 @@ export async function runSetup(options: SetupOptions = {}) {
       appendToInstallLog(langId, step.command, res.success, res.output);
       
       let failed = !res.success;
-      while (failed) {
+      if (failed && options.yes) {
+        p.log.error(t('setupCommandFailed' as any, displayLang, step.command));
+        anyFailure = true;
+      }
+
+      while (failed && !options.yes) {
         p.log.error(t('setupCommandFailed' as any, displayLang, step.command));
         
         const action = await p.select({
@@ -572,7 +590,7 @@ export async function runSetup(options: SetupOptions = {}) {
       
       if (anyFailure) {
         p.cancel(t('setupAbortedHalfway' as any, displayLang));
-        process.exit(0);
+        process.exit(options.yes ? 1 : 0);
       }
     }
     
@@ -582,12 +600,12 @@ export async function runSetup(options: SetupOptions = {}) {
   }
 
   if (!anyFailure && settingsUpdates.length > 0) {
-    const applyConfigVal = await p.confirm({
+    const applyConfigVal = options.yes ? true : await p.confirm({
       message: t('setupApplyConfigConfirm' as any, displayLang),
       initialValue: true
     });
 
-    if (p.isCancel(applyConfigVal)) {
+    if (!options.yes && p.isCancel(applyConfigVal)) {
       if (executedAnyCommand) {
         p.cancel(t('setupCancelledSettingsNotApplied' as any, displayLang));
       } else {

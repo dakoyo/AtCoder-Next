@@ -1010,12 +1010,14 @@ toolsCmd
   .description(t('descSetup' as any, lang))
   .option('--refresh', 'Refresh the AtCoder compiler version cache')
   .option('--dry-run', 'Show setup commands and diffs without running them')
+  .option('--yes', 'Skip all prompts and use default choices')
   .action(
-    handleAction(async (languages: string[], options: { refresh?: boolean; dryRun?: boolean }) => {
+    handleAction(async (languages: string[], options: { refresh?: boolean; dryRun?: boolean; yes?: boolean }) => {
       await runSetup({
         languages: languages.length > 0 ? languages : undefined,
         refresh: options.refresh,
-        dryRun: options.dryRun
+        dryRun: options.dryRun,
+        yes: options.yes
       });
     })
   );
