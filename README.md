@@ -130,8 +130,8 @@ atc tools setup
 ローカルにある複数のコードモジュールを1つのファイルにマージします。
 
 ```bash
-# Pythonファイルのインポートを1つに統合
-atc tools bundle main.py -o dist/main.bundle.py
+# C++ファイルのインポートを1つに統合
+atc tools bundle main.cpp -o dist/main.bundle.cpp
 
 # toolsはtで省略可能。-oを指定しなかった場合はmain.bundle.cppとして出力されます。
 atc t bundle main.cpp
