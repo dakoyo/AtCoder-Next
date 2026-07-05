@@ -308,10 +308,7 @@ function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?
   let outputContent = '';
 
   const esbuildLibPath = require.resolve('esbuild');
-  let esbuildBinPath = path.resolve(path.dirname(esbuildLibPath), '../bin/esbuild');
-  if (process.platform === 'win32') {
-    esbuildBinPath += '.exe';
-  }
+  const esbuildBinPath = path.resolve(path.dirname(esbuildLibPath), '../bin/esbuild');
 
   for (const input of inputs) {
     let absoluteInputPath = path.resolve(input);
@@ -340,16 +337,33 @@ function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?
       throw new AtcError(`Input file and output file cannot be the same: "${input}".`);
     }
 
-    const args = [
-      absoluteInputPath,
-      '--bundle',
-      '--platform=node',
-      '--target=node20',
-      '--format=cjs',
-      ...extraArgs
-    ];
+    let execCmd: string;
+    let args: string[];
 
-    const result = spawnSync(esbuildBinPath, args, {
+    if (process.platform === 'win32') {
+      execCmd = 'node';
+      args = [
+        esbuildBinPath,
+        absoluteInputPath,
+        '--bundle',
+        '--platform=node',
+        '--target=node20',
+        '--format=cjs',
+        ...extraArgs
+      ];
+    } else {
+      execCmd = esbuildBinPath;
+      args = [
+        absoluteInputPath,
+        '--bundle',
+        '--platform=node',
+        '--target=node20',
+        '--format=cjs',
+        ...extraArgs
+      ];
+    }
+
+    const result = spawnSync(execCmd, args, {
       encoding: 'utf8',
     });
 

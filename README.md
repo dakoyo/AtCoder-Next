@@ -2,7 +2,7 @@
 
 English: [README](README.en.md)
 
-AtCoder Nextは、AtCoderでの競技プログラミングを効率化するために設計された、ローカルファーストの強力なCLIツールです。
+AtCoder Nextは、AtCoderでの競技プログラミングを効率的に行うためのCLIツールです。
 
 ## ターミナルデモ
 ![Screencast](./docs/media/vhs/ja.gif)
