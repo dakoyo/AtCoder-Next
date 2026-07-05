@@ -946,6 +946,16 @@ toolsCmd
       let inputs: string[] = [];
       let output: string | undefined = options.output;
 
+      const doubleDashIndex = process.argv.indexOf('--');
+      let extraArgs: string[] = [];
+      if (doubleDashIndex !== -1) {
+        extraArgs = process.argv.slice(doubleDashIndex + 1);
+        files = files.filter(f => {
+          const idx = process.argv.indexOf(f);
+          return idx !== -1 && idx < doubleDashIndex;
+        });
+      }
+
       if (options.input && options.input.length > 0) {
         inputs = options.input;
       }
@@ -986,7 +996,7 @@ toolsCmd
       s.start('Bundling files...');
 
       try {
-        bundleFiles(inputs, output, workspaceRoot);
+        bundleFiles(inputs, output, workspaceRoot, extraArgs);
         s.stop(t('bundleSuccess', lang, output));
       } catch (err: any) {
         s.stop('Failed');
