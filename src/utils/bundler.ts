@@ -308,7 +308,10 @@ function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?
   let outputContent = '';
 
   const esbuildLibPath = require.resolve('esbuild');
-  const esbuildBinPath = path.resolve(path.dirname(esbuildLibPath), '../bin/esbuild');
+  let esbuildBinPath = path.resolve(path.dirname(esbuildLibPath), '../bin/esbuild');
+  if (process.platform === 'win32') {
+    esbuildBinPath += '.exe';
+  }
 
   for (const input of inputs) {
     let absoluteInputPath = path.resolve(input);
