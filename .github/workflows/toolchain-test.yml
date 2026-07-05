@@ -40,6 +40,74 @@ jobs:
         run: |
           winget source update
 
+      - name: Create Dummy Config File
+        shell: bash
+        run: |
+          mkdir -p .atcoder-next
+          cat << 'EOF' > .atcoder-next/config.json
+          {
+            "defaultLanguage": "cpp",
+            "testDirName": "tests",
+            "lang": "en",
+            "languages": {
+              "cpp": {
+                "extension": "cpp",
+                "templateDir": "templates/cpp",
+                "build": "g++ -O2 -std=gnu++20 -o a.out main.cpp",
+                "run": "./a.out",
+                "submitFile": "main.cpp",
+                "atcoderLanguage": "",
+                "atcoderLanguageIdRegex": ""
+              },
+              "python": {
+                "extension": "py",
+                "templateDir": "templates/python",
+                "build": "",
+                "run": "python3 main.py",
+                "submitFile": "main.py",
+                "atcoderLanguage": "",
+                "atcoderLanguageIdRegex": ""
+              },
+              "rust": {
+                "extension": "rs",
+                "templateDir": "templates/rust",
+                "build": "rustc -O -o a.out main.rs",
+                "run": "./a.out",
+                "submitFile": "main.rs",
+                "atcoderLanguage": "",
+                "atcoderLanguageIdRegex": ""
+              },
+              "typescript": {
+                "extension": "ts",
+                "templateDir": "templates/typescript",
+                "build": "",
+                "run": "npx ts-node main.ts",
+                "submitFile": "main.ts",
+                "atcoderLanguage": "",
+                "atcoderLanguageIdRegex": ""
+              },
+              "javascript": {
+                "extension": "js",
+                "templateDir": "templates/javascript",
+                "build": "",
+                "run": "node main.js",
+                "submitFile": "main.js",
+                "atcoderLanguage": "",
+                "atcoderLanguageIdRegex": ""
+              },
+              "c": {
+                "extension": "c",
+                "templateDir": "templates/c",
+                "build": "gcc -O2 -std=c11 -o a.out main.c",
+                "run": "./a.out",
+                "submitFile": "main.c",
+                "atcoderLanguage": "",
+                "atcoderLanguageIdRegex": ""
+              }
+            }
+          }
+          EOF
+
       - name: Run Toolchain Installation Test
         shell: bash
         run: |
