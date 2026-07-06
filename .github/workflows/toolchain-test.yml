@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p .atcoder-next
-          cat << 'EOF' > .atcoder-next/config.json
+          cat << 'EOF' > .atcoder-next/settings.json
           {
             "defaultLanguage": "cpp",
             "testDirName": "tests",
@@ -159,12 +159,12 @@ jobs:
           for lang in ${{ github.event.inputs.languages }}; do
             echo "Testing scaffolding and local compiler settings for: $lang"
             
-            # config.json の defaultLanguage を一時的に $lang に書き換え
+            # settings.json の defaultLanguage を一時的に $lang に書き換え
             node -e "
               const fs = require('fs');
-              const conf = JSON.parse(fs.readFileSync('.atcoder-next/config.json', 'utf8'));
+              const conf = JSON.parse(fs.readFileSync('.atcoder-next/settings.json', 'utf8'));
               conf.defaultLanguage = '$lang';
-              fs.writeFileSync('.atcoder-next/config.json', JSON.stringify(conf, null, 2));
+              fs.writeFileSync('.atcoder-next/settings.json', JSON.stringify(conf, null, 2));
             "
             
             # 既存のコンテストディレクトリがあればクリーンアップ
