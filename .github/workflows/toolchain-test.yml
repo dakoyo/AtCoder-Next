@@ -108,6 +108,27 @@ jobs:
           }
           EOF
 
+      - name: Create Mock Compiler Cache
+        shell: bash
+        run: |
+          mkdir -p ~/.atcoder-next/cache
+          cat << 'EOF' > ~/.atcoder-next/cache/compilers.json
+          {
+            "timestamp": 9999999999999,
+            "compilers": [
+              { "id": "5001", "name": "C++ 23 (GCC 15.2.0)" },
+              { "id": "5002", "name": "C++ 23 (Clang 21.1.0)" },
+              { "id": "5003", "name": "Python (3.13.7)" },
+              { "id": "5004", "name": "Python (PyPy 3.10-v7.3.20)" },
+              { "id": "5005", "name": "Rust (rustc 1.89.0)" },
+              { "id": "5006", "name": "TypeScript 5.9 (Node.js 22.19.0)" },
+              { "id": "5007", "name": "JavaScript (Node.js 22.19.0)" },
+              { "id": "5008", "name": "C11 (GCC 14.2.0)" },
+              { "id": "5009", "name": "C11 (Clang 21.1.0)" }
+            ]
+          }
+          EOF
+
       - name: Run Toolchain Installation Test
         shell: bash
         run: |
