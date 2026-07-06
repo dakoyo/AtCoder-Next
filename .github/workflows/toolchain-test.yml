@@ -174,99 +174,99 @@ jobs:
             "
             
             # 既存のコンテストディレクトリがあればクリーンアップ
-            rm -rf practice
+            rm -rf abs
             
-            # 1. 新しい問題 (practice a) を作成
-            node dist/cli.js new practice a
+            # 1. 新しい問題 (abs 1) を作成
+            node dist/cli.js new abs 1
             
             # 2. $lang 用の正解 (AC) コードを生成
             case "$lang" in
               cpp)
-                echo '#include <iostream>' > practice/a/main.cpp
-                echo '#include <string>' >> practice/a/main.cpp
-                echo 'using namespace std;' >> practice/a/main.cpp
-                echo 'int main() {' >> practice/a/main.cpp
-                echo '    int a, b, c;' >> practice/a/main.cpp
-                echo '    string s;' >> practice/a/main.cpp
-                echo '    if (cin >> a >> b >> c >> s) {' >> practice/a/main.cpp
-                echo '        cout << (a + b + c) << " " << s << endl;' >> practice/a/main.cpp
-                echo '    }' >> practice/a/main.cpp
-                echo '    return 0;' >> practice/a/main.cpp
-                echo '}' >> practice/a/main.cpp
+                echo '#include <iostream>' > abs/1/main.cpp
+                echo '#include <string>' >> abs/1/main.cpp
+                echo 'using namespace std;' >> abs/1/main.cpp
+                echo 'int main() {' >> abs/1/main.cpp
+                echo '    int a, b, c;' >> abs/1/main.cpp
+                echo '    string s;' >> abs/1/main.cpp
+                echo '    if (cin >> a >> b >> c >> s) {' >> abs/1/main.cpp
+                echo '        cout << (a + b + c) << " " << s << endl;' >> abs/1/main.cpp
+                echo '    }' >> abs/1/main.cpp
+                echo '    return 0;' >> abs/1/main.cpp
+                echo '}' >> abs/1/main.cpp
                 ;;
               c)
-                echo '#include <stdio.h>' > practice/a/main.c
-                echo 'int main() {' >> practice/a/main.c
-                echo '    int a, b, c;' >> practice/a/main.c
-                echo '    char s[101];' >> practice/a/main.c
-                echo '    if (scanf("%d %d %d %s", &a, &b, &c, s) == 4) {' >> practice/a/main.c
-                echo '        printf("%d %s\n", a + b + c, s);' >> practice/a/main.c
-                echo '    }' >> practice/a/main.c
-                echo '    return 0;' >> practice/a/main.c
-                echo '}' >> practice/a/main.c
+                echo '#include <stdio.h>' > abs/1/main.c
+                echo 'int main() {' >> abs/1/main.c
+                echo '    int a, b, c;' >> abs/1/main.c
+                echo '    char s[101];' >> abs/1/main.c
+                echo '    if (scanf("%d %d %d %s", &a, &b, &c, s) == 4) {' >> abs/1/main.c
+                echo '        printf("%d %s\n", a + b + c, s);' >> abs/1/main.c
+                echo '    }' >> abs/1/main.c
+                echo '    return 0;' >> abs/1/main.c
+                echo '}' >> abs/1/main.c
                 ;;
               python)
-                echo 'import sys' > practice/a/main.py
-                echo 'def main():' >> practice/a/main.py
-                echo '    lines = sys.stdin.read().split()' >> practice/a/main.py
-                echo '    if len(lines) >= 4:' >> practice/a/main.py
-                echo '        a = int(lines[0])' >> practice/a/main.py
-                echo '        b = int(lines[1])' >> practice/a/main.py
-                echo '        c = int(lines[2])' >> practice/a/main.py
-                echo '        s = lines[3]' >> practice/a/main.py
-                echo '        print(f"{a+b+c} {s}")' >> practice/a/main.py
-                echo "if __name__ == '__main__':" >> practice/a/main.py
-                echo '    main()' >> practice/a/main.py
+                echo 'import sys' > abs/1/main.py
+                echo 'def main():' >> abs/1/main.py
+                echo '    lines = sys.stdin.read().split()' >> abs/1/main.py
+                echo '    if len(lines) >= 4:' >> abs/1/main.py
+                echo '        a = int(lines[0])' >> abs/1/main.py
+                echo '        b = int(lines[1])' >> abs/1/main.py
+                echo '        c = int(lines[2])' >> abs/1/main.py
+                echo '        s = lines[3]' >> abs/1/main.py
+                echo '        print(f"{a+b+c} {s}")' >> abs/1/main.py
+                echo "if __name__ == '__main__':" >> abs/1/main.py
+                echo '    main()' >> abs/1/main.py
                 ;;
               rust)
-                echo 'use std::io::{self, Read};' > practice/a/main.rs
-                echo 'fn main() {' >> practice/a/main.rs
-                echo '    let mut buffer = String::new();' >> practice/a/main.rs
-                echo '    io::stdin().read_to_string(&mut buffer).unwrap();' >> practice/a/main.rs
-                echo '    let mut words = buffer.split_whitespace();' >> practice/a/main.rs
-                echo '    let a: i32 = words.next().unwrap().parse().unwrap();' >> practice/a/main.rs
-                echo '    let b: i32 = words.next().unwrap().parse().unwrap();' >> practice/a/main.rs
-                echo '    let c: i32 = words.next().unwrap().parse().unwrap();' >> practice/a/main.rs
-                echo '    let s = words.next().unwrap();' >> practice/a/main.rs
-                echo '    println!("{} {}", a + b + c, s);' >> practice/a/main.rs
-                echo '}' >> practice/a/main.rs
+                echo 'use std::io::{self, Read};' > abs/1/main.rs
+                echo 'fn main() {' >> abs/1/main.rs
+                echo '    let mut buffer = String::new();' >> abs/1/main.rs
+                echo '    io::stdin().read_to_string(&mut buffer).unwrap();' >> abs/1/main.rs
+                echo '    let mut words = buffer.split_whitespace();' >> abs/1/main.rs
+                echo '    let a: i32 = words.next().unwrap().parse().unwrap();' >> abs/1/main.rs
+                echo '    let b: i32 = words.next().unwrap().parse().unwrap();' >> abs/1/main.rs
+                echo '    let c: i32 = words.next().unwrap().parse().unwrap();' >> abs/1/main.rs
+                echo '    let s = words.next().unwrap();' >> abs/1/main.rs
+                echo '    println!("{} {}", a + b + c, s);' >> abs/1/main.rs
+                echo '}' >> abs/1/main.rs
                 ;;
               typescript)
-                echo "import * as fs from 'fs';" > practice/a/main.ts
-                echo 'function main() {' >> practice/a/main.ts
-                echo "    const input = fs.readFileSync(0, 'utf8');" >> practice/a/main.ts
-                echo '    const words = input.trim().split(/\s+/);' >> practice/a/main.ts
-                echo '    if (words.length >= 4) {' >> practice/a/main.ts
-                echo '        const a = parseInt(words[0], 10);' >> practice/a/main.ts
-                echo '        const b = parseInt(words[1], 10);' >> practice/a/main.ts
-                echo '        const c = parseInt(words[2], 10);' >> practice/a/main.ts
-                echo '        const s = words[3];' >> practice/a/main.ts
-                echo '        console.log(`${a + b + c} ${s}`);' >> practice/a/main.ts
-                echo '    }' >> practice/a/main.ts
-                echo '}' >> practice/a/main.ts
-                echo 'main();' >> practice/a/main.ts
+                echo "import * as fs from 'fs';" > abs/1/main.ts
+                echo 'function main() {' >> abs/1/main.ts
+                echo "    const input = fs.readFileSync(0, 'utf8');" >> abs/1/main.ts
+                echo '    const words = input.trim().split(/\s+/);' >> abs/1/main.ts
+                echo '    if (words.length >= 4) {' >> abs/1/main.ts
+                echo '        const a = parseInt(words[0], 10);' >> abs/1/main.ts
+                echo '        const b = parseInt(words[1], 10);' >> abs/1/main.ts
+                echo '        const c = parseInt(words[2], 10);' >> abs/1/main.ts
+                echo '        const s = words[3];' >> abs/1/main.ts
+                echo '        console.log(`${a + b + c} ${s}`);' >> abs/1/main.ts
+                echo '    }' >> abs/1/main.ts
+                echo '}' >> abs/1/main.ts
+                echo 'main();' >> abs/1/main.ts
                 ;;
               javascript)
-                echo "const fs = require('fs');" > practice/a/main.js
-                echo 'function main() {' >> practice/a/main.js
-                echo '    const input = fs.readFileSync(0, "utf8");' >> practice/a/main.js
-                echo '    const words = input.trim().split(/\s+/);' >> practice/a/main.js
-                echo '    if (words.length >= 4) {' >> practice/a/main.js
-                echo '        const a = parseInt(words[0], 10);' >> practice/a/main.js
-                echo '        const b = parseInt(words[1], 10);' >> practice/a/main.js
-                echo '        const c = parseInt(words[2], 10);' >> practice/a/main.js
-                echo '        const s = words[3];' >> practice/a/main.js
-                echo '        console.log(`${a + b + c} ${s}`);' >> practice/a/main.js
-                echo '    }' >> practice/a/main.js
-                echo '}' >> practice/a/main.js
-                echo 'main();' >> practice/a/main.js
+                echo "const fs = require('fs');" > abs/1/main.js
+                echo 'function main() {' >> abs/1/main.js
+                echo '    const input = fs.readFileSync(0, "utf8");' >> abs/1/main.js
+                echo '    const words = input.trim().split(/\s+/);' >> abs/1/main.js
+                echo '    if (words.length >= 4) {' >> abs/1/main.js
+                echo '        const a = parseInt(words[0], 10);' >> abs/1/main.js
+                echo '        const b = parseInt(words[1], 10);' >> abs/1/main.js
+                echo '        const c = parseInt(words[2], 10);' >> abs/1/main.js
+                echo '        const s = words[3];' >> abs/1/main.js
+                echo '        console.log(`${a + b + c} ${s}`);' >> abs/1/main.js
+                echo '    }' >> abs/1/main.js
+                echo '}' >> abs/1/main.js
+                echo 'main();' >> abs/1/main.js
                 ;;
             esac
             
             # 3. テストを実行し、すべてのテストケースがパスする (AC) か確かめる
             # test コマンドは、一部でも WA やエラーがあると非ゼロの終了コードを返すため、
             # 失敗時にはここでワークフロー全体がエラー終了します。
-            node dist/cli.js test practice a
+            node dist/cli.js test abs 1
             
             echo "Successfully verified compile & test for $lang!"
           done
