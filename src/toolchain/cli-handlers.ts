@@ -227,7 +227,7 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
     localVersion: string;
     targetVersion: string;
     targetName: string;
-    status: 'match' | 'warning' | 'mismatch' | 'optional-missing';
+    status: 'match' | 'warning' | 'mismatch' | 'optional-missing' | 'optional-mismatch';
   }[] = [];
 
   const checkSpinner = p.spinner();
@@ -242,13 +242,18 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
       const localVer = detectToolchainVersion(toolchain, langId, target?.version);
       const isActive = toolchain.id === activeToolchainId;
       
-      let status: 'match' | 'warning' | 'mismatch' | 'optional-missing';
+      let status: 'match' | 'warning' | 'mismatch' | 'optional-missing' | 'optional-mismatch';
       if (!localVer) {
         status = isActive ? 'mismatch' : 'optional-missing';
       } else if (target) {
-        status = compareVersions(localVer, target.version);
+        const cmp = compareVersions(localVer, target.version);
+        if (cmp === 'mismatch') {
+          status = isActive ? 'mismatch' : 'optional-mismatch';
+        } else {
+          status = cmp;
+        }
       } else {
-        status = 'mismatch';
+        status = isActive ? 'mismatch' : 'optional-mismatch';
       }
       
       if (target) {
@@ -295,6 +300,8 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
       statusStr = pc.yellow('Warning');
     } else if (r.status === 'optional-missing') {
       statusStr = pc.gray('Not Installed');
+    } else if (r.status === 'optional-mismatch') {
+      statusStr = pc.yellow('Mismatch');
     } else {
       statusStr = pc.red(r.localVersion === 'Not Found' ? 'Not Installed' : 'Mismatch');
     }
