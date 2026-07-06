@@ -121,14 +121,14 @@ export function findAtCoderTarget(
   if (toolchainId === 'gcc') {
     regex = /gcc\s*(\d+\.\d+(?:\.\d+)?)/i;
     if (langId === 'c') {
-      filterFn = (name) => name.includes('C ') && !name.includes('C++');
+      filterFn = (name) => (name.startsWith('C ') || /^C\d+\b/.test(name)) && !name.includes('C++');
     } else {
       filterFn = (name) => name.includes('C++');
     }
   } else if (toolchainId === 'clang') {
     regex = /clang\s*(\d+\.\d+(?:\.\d+)?)/i;
     if (langId === 'c') {
-      filterFn = (name) => name.includes('C ') && !name.includes('C++');
+      filterFn = (name) => (name.startsWith('C ') || /^C\d+\b/.test(name)) && !name.includes('C++');
     } else {
       filterFn = (name) => name.includes('C++');
     }
@@ -138,14 +138,12 @@ export function findAtCoderTarget(
   } else if (toolchainId === 'pypy') {
     regex = /PyPy3?\s*\(?(\d+\.\d+(?:\.\d+)?)/i;
     filterFn = (name) => name.includes('PyPy');
+  } else if (toolchainId === 'typescript') {
+    regex = /TypeScript\s*\(?(\d+\.\d+(?:\.\d+)?)/i;
+    filterFn = (name) => name.includes('TypeScript');
   } else if (toolchainId === 'node') {
-    if (langId === 'typescript') {
-      regex = /TypeScript\s*\(?(\d+\.\d+(?:\.\d+)?)/i;
-      filterFn = (name) => name.includes('TypeScript');
-    } else {
-      regex = /Node\.js\s*\(?(\d+\.\d+(?:\.\d+)?)/i;
-      filterFn = (name) => name.includes('Node.js') || name.includes('JavaScript');
-    }
+    regex = /Node\.js\s*\(?(\d+\.\d+(?:\.\d+)?)/i;
+    filterFn = (name) => name.includes('Node.js') || name.includes('JavaScript');
   } else if (toolchainId === 'rust') {
     regex = /Rust\s*\(?(?:rustc\s*)?(\d+\.\d+(?:\.\d+)?)/i;
     filterFn = (name) => name.includes('Rust');

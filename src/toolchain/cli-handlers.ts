@@ -48,14 +48,52 @@ export function detectToolchainVersion(
   targetVersion?: string
 ): string | undefined {
   let detectCmd = toolchain.detect.command;
-  if (targetVersion && (toolchain.id === 'gcc' || toolchain.id === 'clang')) {
-    const major = targetVersion.split('.')[0];
-    const versionedBinary = toolchain.id === 'gcc' ? `g++-${major}` : `clang-${major}`;
-    if (commandExists(versionedBinary)) {
-      detectCmd = `${versionedBinary} --version`;
+  let customRegex = toolchain.detect.versionRegex;
+
+  if (toolchain.id === 'gcc') {
+    const base = langId === 'c' ? 'gcc' : 'g++';
+    customRegex = /(?:g\+\+|gcc).*?(\d+\.\d+\.\d+)/i;
+
+    const candidates: string[] = [];
+    if (targetVersion) {
+      const major = targetVersion.split('.')[0];
+      candidates.push(`${base}-${major}`);
+    }
+    for (let m = 16; m >= 9; m--) {
+      candidates.push(`${base}-${m}`);
+    }
+    candidates.push(base);
+
+    for (const cmd of candidates) {
+      if (commandExists(cmd)) {
+        detectCmd = `${cmd} --version`;
+        break;
+      }
+    }
+  } else if (toolchain.id === 'clang') {
+    const base = langId === 'c' ? 'clang' : 'clang++';
+    const candidates: string[] = [];
+    if (targetVersion) {
+      const major = targetVersion.split('.')[0];
+      candidates.push(`${base}-${major}`);
+      candidates.push(`clang-${major}`);
+    }
+    for (let m = 22; m >= 10; m--) {
+      candidates.push(`${base}-${m}`);
+      candidates.push(`clang-${m}`);
+    }
+    candidates.push(base);
+    candidates.push('clang');
+
+    for (const cmd of candidates) {
+      if (commandExists(cmd)) {
+        detectCmd = `${cmd} --version`;
+        break;
+      }
     }
   }
-  return detectLocalVersion(detectCmd, toolchain.detect.versionRegex);
+
+  return detectLocalVersion(detectCmd, customRegex);
 }
 
 export function getToolchainForLang(langId: string, config?: Config): typeof toolchainDefinitions[keyof typeof toolchainDefinitions] | undefined {
@@ -73,7 +111,10 @@ export function getToolchainsForLang(langId: string): (typeof toolchainDefinitio
   if (langId === 'rust') {
     return [toolchainDefinitions.rust];
   }
-  if (langId === 'typescript' || langId === 'javascript') {
+  if (langId === 'typescript') {
+    return [toolchainDefinitions.typescript];
+  }
+  if (langId === 'javascript') {
     return [toolchainDefinitions.node];
   }
   return [];
@@ -93,7 +134,10 @@ function getToolchainIdForLang(langId: string, config?: Config): string | undefi
   if (langId === 'rust') {
     return 'rust';
   }
-  if (langId === 'typescript' || langId === 'javascript') {
+  if (langId === 'typescript') {
+    return 'typescript';
+  }
+  if (langId === 'javascript') {
     return 'node';
   }
   return undefined;
@@ -127,7 +171,7 @@ function generateDiff(oldConfig: any, newConfig: any): string {
   return diff;
 }
 
-export async function runDoctor(options: { refresh?: boolean } = {}) {
+export async function runDoctor(options: { refresh?: boolean; yes?: boolean } = {}) {
   const workspaceRoot = findWorkspaceRoot();
   const config = loadConfig(workspaceRoot);
   const displayLang = config.lang || 'en';
@@ -147,6 +191,9 @@ export async function runDoctor(options: { refresh?: boolean } = {}) {
     s.stop(t('doctorFetchFailed' as any, displayLang));
     p.log.error(pc.red(err.message));
     p.outro(pc.red(t('doctorOutroFailed' as any, displayLang)));
+    if (options.yes) {
+      process.exit(1);
+    }
     return;
   }
   
@@ -158,16 +205,21 @@ export async function runDoctor(options: { refresh?: boolean } = {}) {
     process.exit(1);
   }
 
-  const selection = assertNotCancelled(
-    await p.multiselect({
-      message: t('doctorSelectLanguages' as any, displayLang),
-      options: configuredLangs.map(langId => ({
-        value: langId,
-        label: `${langId} (${config.languages[langId].extension})`
-      })),
-      initialValues: configuredLangs
-    })
-  ) as string[];
+  let selection: string[];
+  if (options.yes) {
+    selection = configuredLangs;
+  } else {
+    selection = assertNotCancelled(
+      await p.multiselect({
+        message: t('doctorSelectLanguages' as any, displayLang),
+        options: configuredLangs.map(langId => ({
+          value: langId,
+          label: `${langId} (${config.languages[langId].extension})`
+        })),
+        initialValues: configuredLangs
+      })
+    ) as string[];
+  }
 
   const results: {
     langId: string;
@@ -246,6 +298,15 @@ export async function runDoctor(options: { refresh?: boolean } = {}) {
 
   printCustomBlock(t('doctorResultsTitle' as any, displayLang), tableContent);
 
+  if (options.yes) {
+    p.outro(pc.green(t('doctorFinished' as any, displayLang)));
+    const hasMismatch = results.some(r => r.status === 'mismatch');
+    if (hasMismatch) {
+      process.exit(1);
+    }
+    process.exit(0);
+  }
+
   const nextAction = assertNotCancelled(
     await p.select({
       message: t('doctorNextActionMessage' as any, displayLang),
@@ -305,6 +366,9 @@ export async function runSetup(options: SetupOptions = {}) {
     s.stop(t('setupFetchFailed' as any, displayLang));
     p.log.error(pc.red(err.message));
     p.outro(pc.red(t('setupOutroFailed' as any, displayLang)));
+    if (options.yes) {
+      process.exit(1);
+    }
     return;
   }
   s.stop(t('setupDetectDone' as any, displayLang));

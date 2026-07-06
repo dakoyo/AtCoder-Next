@@ -1009,8 +1009,9 @@ toolsCmd
   .command('doctor')
   .description(t('descDoctor' as any, lang))
   .option('--refresh', 'Refresh the AtCoder compiler version cache')
+  .option('--yes', 'Run in non-interactive mode and exit with code 1 if mismatch found')
   .action(
-    handleAction(async (options: { refresh?: boolean }) => {
+    handleAction(async (options: { refresh?: boolean; yes?: boolean }) => {
       await runDoctor(options);
     })
   );

@@ -126,5 +126,36 @@ describe('findAtCoderTarget', () => {
     expect(match).toBeDefined();
     expect(match?.version).toBe('7.3.0');
   });
+
+  it('should find C clang version (e.g. C11, C23) without space constraints', () => {
+    const compilers = [
+      { id: '5004', name: 'C11 (Clang 16.0.6)' },
+      { id: '5005', name: 'C++23 (Clang 16.0.6)' }
+    ];
+    const match = findAtCoderTarget('clang', 'c', compilers);
+    expect(match).toBeDefined();
+    expect(match?.id).toBe('5004');
+    expect(match?.version).toBe('16.0.6');
+  });
+
+  it('should find C gcc version (e.g. C11, C23) without space constraints', () => {
+    const compilers = [
+      { id: '5006', name: 'C11 (GCC 13.2.0)' },
+      { id: '5007', name: 'C++23 (GCC 13.2.0)' }
+    ];
+    const match = findAtCoderTarget('gcc', 'c', compilers);
+    expect(match).toBeDefined();
+    expect(match?.id).toBe('5006');
+    expect(match?.version).toBe('13.2.0');
+  });
+
+  it('should find TypeScript version using dedicated typescript toolchain', () => {
+    const compilers = [
+      { id: '5008', name: 'TypeScript 5.0.7 (Node.js 20.5.1)' }
+    ];
+    const match = findAtCoderTarget('typescript', 'typescript', compilers);
+    expect(match).toBeDefined();
+    expect(match?.version).toBe('5.0.7');
+  });
 });
 

@@ -3,6 +3,7 @@ import { clangDefinition } from './definitions/clang';
 import { pythonDefinition } from './definitions/python';
 import { pypyDefinition } from './definitions/pypy';
 import { nodeDefinition } from './definitions/node';
+import { typescriptDefinition } from './definitions/typescript';
 import { rustDefinition } from './definitions/rust';
 import { ToolchainDefinition } from './types';
 
@@ -18,6 +19,7 @@ export const toolchainDefinitions: Record<string, ToolchainDefinition> = {
   python: pythonDefinition,
   pypy: pypyDefinition,
   node: nodeDefinition,
+  typescript: typescriptDefinition,
   rust: rustDefinition,
 };
 
@@ -31,7 +33,10 @@ export function getToolchainForLanguage(langId: string): ToolchainDefinition | u
   if (langId === 'rust') {
     return rustDefinition;
   }
-  if (langId === 'typescript' || langId === 'javascript') {
+  if (langId === 'typescript') {
+    return typescriptDefinition;
+  }
+  if (langId === 'javascript') {
     return nodeDefinition;
   }
   return undefined;

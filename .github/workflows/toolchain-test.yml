@@ -115,6 +115,13 @@ jobs:
           # ログを setup.log に保存しつつコンソールにも出力
           node dist/cli.js tools setup ${{ github.event.inputs.languages }} --yes 2>&1 | tee setup.log
 
+      - name: Run Toolchain Doctor Test
+        shell: bash
+        run: |
+          # doctorを非対話モード (--yes) で実行し、バージョンが正しく一致 (Match/Warning) しているか検証
+          # ひとつでも Mismatch や未インストールがあれば終了コード 1 で終了し、テストを失敗させる
+          node dist/cli.js tools doctor --yes 2>&1 | tee doctor.log
+
       - name: Verify Installed Tools (Bash)
         shell: bash
         run: |
@@ -149,5 +156,6 @@ jobs:
           name: toolchain-logs-${{ matrix.os }}
           path: |
             setup.log
+            doctor.log
             install.log
           if-no-files-found: ignore
