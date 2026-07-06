@@ -70,6 +70,32 @@ describe('setupTask problem extraction', () => {
     }
   });
 
+  it('should recursively copy template directory contents including subdirectories', async () => {
+    const config = {
+      ...DEFAULT_CONFIG,
+      extractProblemStatement: false
+    };
+    saveConfig(tempDir, config);
+
+    // Create a subdirectory inside templates/cpp
+    const templatesDir = path.join(tempDir, '.atcoder-next', 'templates', 'cpp');
+    const subDir = path.join(templatesDir, 'dist');
+    fs.mkdirSync(subDir, { recursive: true });
+    fs.writeFileSync(path.join(subDir, 'helper.js'), '// helper', 'utf8');
+
+    const task = {
+      id: 'abc300_a',
+      label: 'a',
+      title: 'A - Test Problem'
+    };
+
+    const res = await setupTask(tempDir, 'abc300', task);
+    expect(res.sampleCount).toBe(1);
+    expect(fs.existsSync(path.join(res.taskDir, 'main.cpp'))).toBe(true);
+    expect(fs.existsSync(path.join(res.taskDir, 'dist'))).toBe(true);
+    expect(fs.existsSync(path.join(res.taskDir, 'dist', 'helper.js'))).toBe(true);
+  });
+
   it('should NOT extract problem statement by default (extractProblemStatement = false)', async () => {
     const config = {
       ...DEFAULT_CONFIG,

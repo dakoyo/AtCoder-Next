@@ -53,17 +53,10 @@ export async function setupTask(
     fs.mkdirSync(taskDir, { recursive: true });
   }
 
-  // Copy template files
+  // Copy template files recursively
   const templateSrcDir = path.join(workspaceRoot, '.atcoder-next', langConfig.templateDir);
   if (fs.existsSync(templateSrcDir) && fs.statSync(templateSrcDir).isDirectory()) {
-    const files = fs.readdirSync(templateSrcDir);
-    for (const file of files) {
-      const srcPath = path.join(templateSrcDir, file);
-      const destPath = path.join(taskDir, file);
-      if (fs.statSync(srcPath).isFile() && !fs.existsSync(destPath)) {
-        fs.copyFileSync(srcPath, destPath);
-      }
-    }
+    copyDirRecursive(templateSrcDir, taskDir);
   }
 
   // Fetch problem page
@@ -129,4 +122,22 @@ export async function setupTask(
     sampleCount: problemDetails.samples.length,
     skippedProblemStatement
   };
+}
+
+function copyDirRecursive(src: string, dest: string): void {
+  if (!fs.existsSync(src)) return;
+  const stats = fs.statSync(src);
+  if (stats.isDirectory()) {
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest, { recursive: true });
+    }
+    const children = fs.readdirSync(src);
+    for (const child of children) {
+      copyDirRecursive(path.join(src, child), path.join(dest, child));
+    }
+  } else {
+    if (!fs.existsSync(dest)) {
+      fs.copyFileSync(src, dest);
+    }
+  }
 }
