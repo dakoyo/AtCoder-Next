@@ -167,96 +167,96 @@ jobs:
             # 2. $lang 用の正解 (AC) コードを生成
             case "$lang" in
               cpp)
-                cat << 'EOF' > practice/a/main.cpp
-#include <iostream>
-#include <string>
-using namespace std;
-int main() {
-    int a, b, c;
-    string s;
-    if (cin >> a >> b >> c >> s) {
-        cout << (a + b + c) << " " << s << endl;
-    }
-    return 0;
-}
-EOF
+                cat << 'EOF' | sed 's/^                //' > practice/a/main.cpp
+                #include <iostream>
+                #include <string>
+                using namespace std;
+                int main() {
+                    int a, b, c;
+                    string s;
+                    if (cin >> a >> b >> c >> s) {
+                        cout << (a + b + c) << " " << s << endl;
+                    }
+                    return 0;
+                }
+                EOF
                 ;;
               c)
-                cat << 'EOF' > practice/a/main.c
-#include <stdio.h>
-int main() {
-    int a, b, c;
-    char s[101];
-    if (scanf("%d %d %d %s", &a, &b, &c, s) == 4) {
-        printf("%d %s\n", a + b + c, s);
-    }
-    return 0;
-}
-EOF
+                cat << 'EOF' | sed 's/^                //' > practice/a/main.c
+                #include <stdio.h>
+                int main() {
+                    int a, b, c;
+                    char s[101];
+                    if (scanf("%d %d %d %s", &a, &b, &c, s) == 4) {
+                        printf("%d %s\n", a + b + c, s);
+                    }
+                    return 0;
+                }
+                EOF
                 ;;
               python)
-                cat << 'EOF' > practice/a/main.py
-import sys
-def main():
-    lines = sys.stdin.read().split()
-    if len(lines) >= 4:
-        a = int(lines[0])
-        b = int(lines[1])
-        c = int(lines[2])
-        s = lines[3]
-        print(f"{a+b+c} {s}")
-if __name__ == '__main__':
-    main()
-EOF
+                cat << 'EOF' | sed 's/^                //' > practice/a/main.py
+                import sys
+                def main():
+                    lines = sys.stdin.read().split()
+                    if len(lines) >= 4:
+                        a = int(lines[0])
+                        b = int(lines[1])
+                        c = int(lines[2])
+                        s = lines[3]
+                        print(f"{a+b+c} {s}")
+                if __name__ == '__main__':
+                    main()
+                EOF
                 ;;
               rust)
-                cat << 'EOF' > practice/a/main.rs
-use std::io::{self, Read};
-fn main() {
-    let mut buffer = String::new();
-    io::stdin().read_to_string(&mut buffer).unwrap();
-    let mut words = buffer.split_whitespace();
-    let a: i32 = words.next().unwrap().parse().unwrap();
-    let b: i32 = words.next().unwrap().parse().unwrap();
-    let c: i32 = words.next().unwrap().parse().unwrap();
-    let s = words.next().unwrap();
-    println!("{} {}", a + b + c, s);
-}
-EOF
+                cat << 'EOF' | sed 's/^                //' > practice/a/main.rs
+                use std::io::{self, Read};
+                fn main() {
+                    let mut buffer = String::new();
+                    io::stdin().read_to_string(&mut buffer).unwrap();
+                    let mut words = buffer.split_whitespace();
+                    let a: i32 = words.next().unwrap().parse().unwrap();
+                    let b: i32 = words.next().unwrap().parse().unwrap();
+                    let c: i32 = words.next().unwrap().parse().unwrap();
+                    let s = words.next().unwrap();
+                    println!("{} {}", a + b + c, s);
+                }
+                EOF
                 ;;
               typescript)
-                cat << 'EOF' > practice/a/main.ts
-import * as fs from 'fs';
-function main() {
-    const input = fs.readFileSync('/dev/stdin', 'utf8');
-    const words = input.trim().split(/\s+/);
-    if (words.length >= 4) {
-        const a = parseInt(words[0], 10);
-        const b = parseInt(words[1], 10);
-        const c = parseInt(words[2], 10);
-        const s = words[3];
-        console.log(`${a + b + c} ${s}`);
-    }
-}
-main();
-EOF
+                cat << 'EOF' | sed 's/^                //' > practice/a/main.ts
+                import * as fs from 'fs';
+                function main() {
+                    const input = fs.readFileSync('/dev/stdin', 'utf8');
+                    const words = input.trim().split(/\s+/);
+                    if (words.length >= 4) {
+                        const a = parseInt(words[0], 10);
+                        const b = parseInt(words[1], 10);
+                        const c = parseInt(words[2], 10);
+                        const s = words[3];
+                        console.log(`${a + b + c} ${s}`);
+                    }
+                }
+                main();
+                EOF
                 ;;
               javascript)
-                cat << 'EOF' > practice/a/main.js
-const fs = require('fs');
-function main() {
-    const input = fs.readFileSync(0, 'utf8');
-    const words = input.trim().split(/\s+/);
-    if (words.length >= 4) {
-        const a = parseInt(words[0], 10);
-        const b = parseInt(words[1], 10);
-        const c = parseInt(words[2], 10);
-        const s = words[3];
-        console.log(`${a + b + c} ${s}`);
-    }
-}
-main();
-EOF
+                cat << 'EOF' | sed 's/^                //' > practice/a/main.js
+                const fs = require('fs');
+                function main() {
+                    const input = fs.readFileSync(0, 'utf8');
+                    const words = input.trim().split(/\s+/);
+                    if (words.length >= 4) {
+                        const a = parseInt(words[0], 10);
+                        const b = parseInt(words[1], 10);
+                        const c = parseInt(words[2], 10);
+                        const s = words[3];
+                        console.log(`${a + b + c} ${s}`);
+                    }
+                }
+                main();
+                EOF
                 ;;
             esac
             
