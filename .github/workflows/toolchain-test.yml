@@ -6,7 +6,7 @@ on:
       languages:
         description: 'テストする言語 (スペース区切り, 例: cpp python rust)'
         required: true
-        default: 'cpp python'
+        default: 'cpp c python rust typescript javascript'
 
 jobs:
   integration-test:
@@ -81,7 +81,7 @@ jobs:
                 "extension": "ts",
                 "templateDir": "templates/typescript",
                 "build": "",
-                "run": "npx ts-node main.ts",
+                "run": "npx --yes ts-node main.ts",
                 "submitFile": "main.ts",
                 "atcoderLanguage": "",
                 "atcoderLanguageIdRegex": ""
@@ -143,6 +143,12 @@ jobs:
           if [ -d "$HOME/.nvm/versions/node/v22.19.0/bin" ]; then
             echo "$HOME/.nvm/versions/node/v22.19.0/bin" >> $GITHUB_PATH
             echo "Added $HOME/.nvm/versions/node/v22.19.0/bin to GITHUB_PATH"
+          fi
+          # If on Windows, add MSYS2 and NodeJS to PATH
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "C:\msys64\mingw64\bin" >> $GITHUB_PATH
+            echo "C:\Program Files\nodejs" >> $GITHUB_PATH
+            echo "Added MSYS2 and NodeJS to GITHUB_PATH on Windows"
           fi
 
       - name: Run Toolchain Doctor Test
@@ -228,7 +234,7 @@ jobs:
               typescript)
                 echo "import * as fs from 'fs';" > practice/a/main.ts
                 echo 'function main() {' >> practice/a/main.ts
-                echo "    const input = fs.readFileSync('/dev/stdin', 'utf8');" >> practice/a/main.ts
+                echo "    const input = fs.readFileSync(0, 'utf8');" >> practice/a/main.ts
                 echo '    const words = input.trim().split(/\s+/);' >> practice/a/main.ts
                 echo '    if (words.length >= 4) {' >> practice/a/main.ts
                 echo '        const a = parseInt(words[0], 10);' >> practice/a/main.ts

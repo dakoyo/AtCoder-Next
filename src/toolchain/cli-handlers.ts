@@ -537,10 +537,10 @@ export async function runSetup(options: SetupOptions = {}) {
       let newRun = oldLangConfig.run;
 
       if (toolchain.id === 'gcc') {
-        newBuild = newBuild.replace(/\bclang\+\+(-\d+)?\b/g, 'g++')
+        newBuild = newBuild.replace(/\bclang\+\+(?:-\d+)?(?!\+)/g, 'g++')
                            .replace(/\bclang(-\d+)?\b/g, 'gcc');
       } else if (toolchain.id === 'clang') {
-        newBuild = newBuild.replace(/\bg\+\+(-\d+)?\b/g, 'clang++')
+        newBuild = newBuild.replace(/\bg\+\+(?:-\d+)?(?!\+)/g, 'clang++')
                            .replace(/\bgcc(-\d+)?\b/g, 'clang');
       } else if (toolchain.id === 'python') {
         newRun = newRun.replace(/\bpypy3?\b/g, 'python3');
@@ -552,11 +552,11 @@ export async function runSetup(options: SetupOptions = {}) {
         const major = target.version.split('.')[0];
         if (toolchain.id === 'gcc') {
           newBuild = newBuild
-            .replace(/\bg\+\+(-\d+)?\b/g, `g++-${major}`)
+            .replace(/\bg\+\+(?:-\d+)?(?!\+)/g, `g++-${major}`)
             .replace(/\bgcc(-\d+)?\b/g, `gcc-${major}`);
         } else if (toolchain.id === 'clang') {
           newBuild = newBuild
-            .replace(/\bclang\+\+(-\d+)?\b/g, `clang++-${major}`)
+            .replace(/\bclang\+\+(?:-\d+)?(?!\+)/g, `clang++-${major}`)
             .replace(/\bclang(-\d+)?\b/g, `clang-${major}`);
         }
       }
