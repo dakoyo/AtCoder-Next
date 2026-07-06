@@ -84,6 +84,10 @@ export const MESSAGES = {
     en: 'Run local tests against downloaded sample cases',
     ja: 'ダウンロードしたサンプルケースに対してローカルテストを実行します'
   },
+  descOpen: {
+    en: 'Open the problem page in your default web browser',
+    ja: 'デフォルトのウェブブラウザで問題ページを開きます'
+  },
   descSubmit: {
     en: 'Submit code to AtCoder',
     ja: 'コードを AtCoder に提出します'
@@ -472,6 +476,24 @@ export const MESSAGES = {
   submitManualSubmission: {
     en: 'Manual Submission',
     ja: '手動提出へ切り替え'
+  },
+
+  // open
+  openRetrievingUrl: {
+    en: 'Retrieving task URL from AtCoder...',
+    ja: 'AtCoder から問題の URL を取得中...'
+  },
+  openSuccess: {
+    en: (url: string) => `Opened browser: ${url}`,
+    ja: (url: string) => `ブラウザで開きました: ${url}`
+  },
+  openTaskNotFound: {
+    en: (label: string, contestId: string) => `Task "${label}" was not found in contest "${contestId}".`,
+    ja: (label: string, contestId: string) => `問題 "${label}" がコンテスト "${contestId}" に見つかりませんでした。`
+  },
+  openFailed: {
+    en: (msg: string) => `Failed to open problem page: ${msg}`,
+    ja: (msg: string) => `問題ページを開くのに失敗しました: ${msg}`
   },
 
   // lang command

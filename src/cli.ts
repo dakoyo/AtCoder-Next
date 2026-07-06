@@ -510,6 +510,36 @@ function resolveArgs(
 }
 
 program
+  .command('open [arg1] [arg2] [arg3]')
+  .description(t('descOpen', lang))
+  .action(
+    handleAction(async (arg1: string | undefined, arg2: string | undefined, arg3: string | undefined) => {
+      const workspaceRoot = findWorkspaceRoot();
+      const { taskLabel, contestId } = resolveArgs(workspaceRoot, arg1, arg2, arg3);
+
+      const s = p.spinner();
+      s.start(t('openRetrievingUrl', lang));
+      
+      try {
+        const tasks = await fetchContestTasks(workspaceRoot, contestId);
+        const taskInfo = tasks.find(t => t.label.toLowerCase() === taskLabel.toLowerCase());
+        
+        if (taskInfo) {
+          const url = `https://atcoder.jp/contests/${contestId}/tasks/${taskInfo.id}`;
+          s.stop(t('openSuccess', lang, url));
+          openUrl(url);
+        } else {
+          s.stop(t('openTaskNotFound', lang, taskLabel, contestId));
+          process.exit(1);
+        }
+      } catch (err: any) {
+        s.stop(t('openFailed', lang, err.message));
+        process.exit(1);
+      }
+    })
+  );
+
+program
   .command('test [arg1] [arg2] [arg3]')
   .description(t('descTest', lang))
   .action(
