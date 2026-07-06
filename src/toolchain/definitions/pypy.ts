@@ -41,7 +41,7 @@ export const pypyDefinition: ToolchainDefinition = {
     windows: [
       { packageManager: "winget", versionSpecificity: "latest-only", requiresElevatedPrivileges: false,
         buildInstallSteps: () => [
-          { command: "winget install PyPy.PyPy3", description: "PyPy3 をインストールします" },
+          { command: "winget install PyPy.PyPy3 --accept-source-agreements --accept-package-agreements", description: "PyPy3 をインストールします" },
         ],
         buildUninstallSteps: () => [{ command: "winget uninstall PyPy.PyPy3" }] },
     ],

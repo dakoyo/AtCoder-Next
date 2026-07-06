@@ -15,11 +15,16 @@ export const nodeDefinition: ToolchainDefinition = {
         description: "nvm公式インストールスクリプトを実行します" },
     ],
     buildInstallSteps: (version) => [
-      { command: `nvm install ${version}`,
+      { command: process.platform === 'win32'
+          ? `nvm install ${version}`
+          : `export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh" && nvm install ${version}`,
         description: `Node.js ${version} をインストールします` },
     ],
     buildApplyLocalVersionSteps: (version) => [
-      { command: `nvm use ${version}`, description: "現在のシェルセッションに適用します（注意: シェル設定ファイルの再読み込みが必要な場合があります）" },
+      { command: process.platform === 'win32'
+          ? `nvm use ${version}`
+          : `export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh" && nvm use ${version}`,
+        description: "現在のシェルセッションに適用します（注意: シェル設定ファイルの再読み込みが必要な場合があります）" },
     ],
   },
   installMethods: {
@@ -45,7 +50,7 @@ export const nodeDefinition: ToolchainDefinition = {
     windows: [
       { packageManager: "winget", versionSpecificity: "latest-only", requiresElevatedPrivileges: false,
         buildInstallSteps: () => [
-          { command: "winget install OpenJS.NodeJS.LTS" },
+          { command: "winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements" },
         ],
         buildUninstallSteps: () => [{ command: "winget uninstall OpenJS.NodeJS.LTS" }] },
     ],

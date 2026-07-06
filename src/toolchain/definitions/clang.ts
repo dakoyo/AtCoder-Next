@@ -68,7 +68,7 @@ export const clangDefinition: ToolchainDefinition = {
         versionSpecificity: "latest-only",
         requiresElevatedPrivileges: false,
         buildInstallSteps: () => [
-          { command: "winget install LLVM.LLVM",
+          { command: "winget install LLVM.LLVM --accept-source-agreements --accept-package-agreements",
             description: "LLVM/Clang をインストールします" },
         ],
         buildUninstallSteps: () => [{ command: "winget uninstall LLVM.LLVM" }],

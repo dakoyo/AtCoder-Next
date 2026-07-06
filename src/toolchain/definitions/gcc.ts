@@ -82,7 +82,7 @@ export const gccDefinition: ToolchainDefinition = {
         versionSpecificity: "latest-only",
         requiresElevatedPrivileges: false,
         prerequisites: () => [
-          { command: "winget install MSYS2.MSYS2",
+          { command: "winget install MSYS2.MSYS2 --accept-source-agreements --accept-package-agreements",
             description: "MSYS2（GCCのWindows向け配布基盤）をインストールします" },
         ],
         buildInstallSteps: () => [

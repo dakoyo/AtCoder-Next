@@ -61,7 +61,7 @@ describe('resolveInstallPlan for GCC on Windows', () => {
     expect(plans).toHaveLength(1);
     expect(plans[0].strategy).toBe('package-manager');
     expect(plans[0].steps).toHaveLength(3);
-    expect(plans[0].steps[0].command).toBe('winget install MSYS2.MSYS2');
+    expect(plans[0].steps[0].command).toBe('winget install MSYS2.MSYS2 --accept-source-agreements --accept-package-agreements');
     expect(plans[0].steps[1].command).toContain('pacman -S --noconfirm');
     expect(plans[0].steps[2].command).toContain('SetEnvironmentVariable');
   });
@@ -73,7 +73,7 @@ describe('resolveInstallPlan for PyPy on Windows and macOS', () => {
     const plans = await resolveInstallPlan(pypyDef, '7.3.12', 'windows');
     expect(plans).toHaveLength(2);
     expect(plans[1].strategy).toBe('package-manager');
-    expect(plans[1].steps[0].command).toBe('winget install PyPy.PyPy3');
+    expect(plans[1].steps[0].command).toBe('winget install PyPy.PyPy3 --accept-source-agreements --accept-package-agreements');
   });
 
   it('should resolve both pyenv and brew strategy for PyPy on macOS', async () => {

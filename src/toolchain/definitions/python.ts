@@ -45,7 +45,7 @@ export const pythonDefinition: ToolchainDefinition = {
     windows: [
       { packageManager: "winget", versionSpecificity: "exact", requiresElevatedPrivileges: false,
         buildInstallSteps: (version) => [
-          { command: `winget install Python.Python.${version.split(".").slice(0, 2).join("")}` },
+          { command: `winget install Python.Python.${version.split(".").slice(0, 2).join("")} --accept-source-agreements --accept-package-agreements` },
         ],
         buildUninstallSteps: () => [{ command: "winget uninstall Python.Python.3" }] },
     ],

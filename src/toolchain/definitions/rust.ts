@@ -39,7 +39,7 @@ export const rustDefinition: ToolchainDefinition = {
     ],
     windows: [
       { packageManager: "winget", versionSpecificity: "latest-only", requiresElevatedPrivileges: false,
-        buildInstallSteps: () => [{ command: "winget install Rustlang.Rustup" }],
+        buildInstallSteps: () => [{ command: "winget install Rustlang.Rustup --accept-source-agreements --accept-package-agreements" }],
         buildUninstallSteps: () => [{ command: "winget uninstall Rustlang.Rustup" }] },
     ],
   },
