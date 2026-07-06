@@ -227,7 +227,7 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
     localVersion: string;
     targetVersion: string;
     targetName: string;
-    status: 'match' | 'warning' | 'mismatch';
+    status: 'match' | 'warning' | 'mismatch' | 'optional-missing';
   }[] = [];
 
   const checkSpinner = p.spinner();
@@ -235,13 +235,23 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
 
   for (const langId of selection) {
     const toolchains = getToolchainsForLang(langId);
+    const activeToolchainId = getToolchainIdForLang(langId, config);
     
     for (const toolchain of toolchains) {
       const target = findAtCoderTarget(toolchain.id, langId, compilers);
       const localVer = detectToolchainVersion(toolchain, langId, target?.version);
+      const isActive = toolchain.id === activeToolchainId;
+      
+      let status: 'match' | 'warning' | 'mismatch' | 'optional-missing';
+      if (!localVer) {
+        status = isActive ? 'mismatch' : 'optional-missing';
+      } else if (target) {
+        status = compareVersions(localVer, target.version);
+      } else {
+        status = 'mismatch';
+      }
       
       if (target) {
-        const status = localVer ? compareVersions(localVer, target.version) : 'mismatch';
         results.push({
           langId,
           toolchainName: toolchain.displayName,
@@ -257,7 +267,7 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
           localVersion: localVer || 'Not Found',
           targetVersion: 'Unknown',
           targetName: 'Unknown',
-          status: 'mismatch'
+          status
         });
       }
     }
@@ -283,6 +293,8 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
       statusStr = pc.green('Match');
     } else if (r.status === 'warning') {
       statusStr = pc.yellow('Warning');
+    } else if (r.status === 'optional-missing') {
+      statusStr = pc.gray('Not Installed');
     } else {
       statusStr = pc.red(r.localVersion === 'Not Found' ? 'Not Installed' : 'Mismatch');
     }
