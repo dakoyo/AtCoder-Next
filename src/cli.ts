@@ -1006,13 +1006,17 @@ toolsCmd
   );
 
 toolsCmd
-  .command('doctor')
+  .command('doctor [languages...]')
   .description(t('descDoctor' as any, lang))
   .option('--refresh', 'Refresh the AtCoder compiler version cache')
   .option('--yes', 'Run in non-interactive mode and exit with code 1 if mismatch found')
   .action(
-    handleAction(async (options: { refresh?: boolean; yes?: boolean }) => {
-      await runDoctor(options);
+    handleAction(async (languages: string[], options: { refresh?: boolean; yes?: boolean }) => {
+      await runDoctor({
+        languages: languages.length > 0 ? languages : undefined,
+        refresh: options.refresh,
+        yes: options.yes
+      });
     })
   );
 

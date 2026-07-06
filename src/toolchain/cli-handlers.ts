@@ -171,7 +171,7 @@ function generateDiff(oldConfig: any, newConfig: any): string {
   return diff;
 }
 
-export async function runDoctor(options: { refresh?: boolean; yes?: boolean } = {}) {
+export async function runDoctor(options: { languages?: string[]; refresh?: boolean; yes?: boolean } = {}) {
   const workspaceRoot = findWorkspaceRoot();
   const config = loadConfig(workspaceRoot);
   const displayLang = config.lang || 'en';
@@ -199,7 +199,7 @@ export async function runDoctor(options: { refresh?: boolean; yes?: boolean } = 
   
   s.stop(t('doctorDetectDone' as any, displayLang));
 
-  const configuredLangs = Object.keys(config.languages);
+  const configuredLangs = options.languages || Object.keys(config.languages);
   if (configuredLangs.length === 0) {
     p.log.error(pc.red(t('doctorNoLanguagesConfigured' as any, displayLang)));
     process.exit(1);
