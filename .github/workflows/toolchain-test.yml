@@ -176,96 +176,84 @@ jobs:
             # 2. $lang 用の正解 (AC) コードを生成
             case "$lang" in
               cpp)
-                cat << 'EOF' | sed 's/^                //' > practice/a/main.cpp
-                #include <iostream>
-                #include <string>
-                using namespace std;
-                int main() {
-                    int a, b, c;
-                    string s;
-                    if (cin >> a >> b >> c >> s) {
-                        cout << (a + b + c) << " " << s << endl;
-                    }
-                    return 0;
-                }
-                EOF
+                echo '#include <iostream>' > practice/a/main.cpp
+                echo '#include <string>' >> practice/a/main.cpp
+                echo 'using namespace std;' >> practice/a/main.cpp
+                echo 'int main() {' >> practice/a/main.cpp
+                echo '    int a, b, c;' >> practice/a/main.cpp
+                echo '    string s;' >> practice/a/main.cpp
+                echo '    if (cin >> a >> b >> c >> s) {' >> practice/a/main.cpp
+                echo '        cout << (a + b + c) << " " << s << endl;' >> practice/a/main.cpp
+                echo '    }' >> practice/a/main.cpp
+                echo '    return 0;' >> practice/a/main.cpp
+                echo '}' >> practice/a/main.cpp
                 ;;
               c)
-                cat << 'EOF' | sed 's/^                //' > practice/a/main.c
-                #include <stdio.h>
-                int main() {
-                    int a, b, c;
-                    char s[101];
-                    if (scanf("%d %d %d %s", &a, &b, &c, s) == 4) {
-                        printf("%d %s\n", a + b + c, s);
-                    }
-                    return 0;
-                }
-                EOF
+                echo '#include <stdio.h>' > practice/a/main.c
+                echo 'int main() {' >> practice/a/main.c
+                echo '    int a, b, c;' >> practice/a/main.c
+                echo '    char s[101];' >> practice/a/main.c
+                echo '    if (scanf("%d %d %d %s", &a, &b, &c, s) == 4) {' >> practice/a/main.c
+                echo '        printf("%d %s\n", a + b + c, s);' >> practice/a/main.c
+                echo '    }' >> practice/a/main.c
+                echo '    return 0;' >> practice/a/main.c
+                echo '}' >> practice/a/main.c
                 ;;
               python)
-                cat << 'EOF' | sed 's/^                //' > practice/a/main.py
-                import sys
-                def main():
-                    lines = sys.stdin.read().split()
-                    if len(lines) >= 4:
-                        a = int(lines[0])
-                        b = int(lines[1])
-                        c = int(lines[2])
-                        s = lines[3]
-                        print(f"{a+b+c} {s}")
-                if __name__ == '__main__':
-                    main()
-                EOF
+                echo 'import sys' > practice/a/main.py
+                echo 'def main():' >> practice/a/main.py
+                echo '    lines = sys.stdin.read().split()' >> practice/a/main.py
+                echo '    if len(lines) >= 4:' >> practice/a/main.py
+                echo '        a = int(lines[0])' >> practice/a/main.py
+                echo '        b = int(lines[1])' >> practice/a/main.py
+                echo '        c = int(lines[2])' >> practice/a/main.py
+                echo '        s = lines[3]' >> practice/a/main.py
+                echo '        print(f"{a+b+c} {s}")' >> practice/a/main.py
+                echo "if __name__ == '__main__':" >> practice/a/main.py
+                echo '    main()' >> practice/a/main.py
                 ;;
               rust)
-                cat << 'EOF' | sed 's/^                //' > practice/a/main.rs
-                use std::io::{self, Read};
-                fn main() {
-                    let mut buffer = String::new();
-                    io::stdin().read_to_string(&mut buffer).unwrap();
-                    let mut words = buffer.split_whitespace();
-                    let a: i32 = words.next().unwrap().parse().unwrap();
-                    let b: i32 = words.next().unwrap().parse().unwrap();
-                    let c: i32 = words.next().unwrap().parse().unwrap();
-                    let s = words.next().unwrap();
-                    println!("{} {}", a + b + c, s);
-                }
-                EOF
+                echo 'use std::io::{self, Read};' > practice/a/main.rs
+                echo 'fn main() {' >> practice/a/main.rs
+                echo '    let mut buffer = String::new();' >> practice/a/main.rs
+                echo '    io::stdin().read_to_string(&mut buffer).unwrap();' >> practice/a/main.rs
+                echo '    let mut words = buffer.split_whitespace();' >> practice/a/main.rs
+                echo '    let a: i32 = words.next().unwrap().parse().unwrap();' >> practice/a/main.rs
+                echo '    let b: i32 = words.next().unwrap().parse().unwrap();' >> practice/a/main.rs
+                echo '    let c: i32 = words.next().unwrap().parse().unwrap();' >> practice/a/main.rs
+                echo '    let s = words.next().unwrap();' >> practice/a/main.rs
+                echo '    println!("{} {}", a + b + c, s);' >> practice/a/main.rs
+                echo '}' >> practice/a/main.rs
                 ;;
               typescript)
-                cat << 'EOF' | sed 's/^                //' > practice/a/main.ts
-                import * as fs from 'fs';
-                function main() {
-                    const input = fs.readFileSync('/dev/stdin', 'utf8');
-                    const words = input.trim().split(/\s+/);
-                    if (words.length >= 4) {
-                        const a = parseInt(words[0], 10);
-                        const b = parseInt(words[1], 10);
-                        const c = parseInt(words[2], 10);
-                        const s = words[3];
-                        console.log(`${a + b + c} ${s}`);
-                    }
-                }
-                main();
-                EOF
+                echo "import * as fs from 'fs';" > practice/a/main.ts
+                echo 'function main() {' >> practice/a/main.ts
+                echo "    const input = fs.readFileSync('/dev/stdin', 'utf8');" >> practice/a/main.ts
+                echo '    const words = input.trim().split(/\s+/);' >> practice/a/main.ts
+                echo '    if (words.length >= 4) {' >> practice/a/main.ts
+                echo '        const a = parseInt(words[0], 10);' >> practice/a/main.ts
+                echo '        const b = parseInt(words[1], 10);' >> practice/a/main.ts
+                echo '        const c = parseInt(words[2], 10);' >> practice/a/main.ts
+                echo '        const s = words[3];' >> practice/a/main.ts
+                echo '        console.log(`${a + b + c} ${s}`);' >> practice/a/main.ts
+                echo '    }' >> practice/a/main.ts
+                echo '}' >> practice/a/main.ts
+                echo 'main();' >> practice/a/main.ts
                 ;;
               javascript)
-                cat << 'EOF' | sed 's/^                //' > practice/a/main.js
-                const fs = require('fs');
-                function main() {
-                    const input = fs.readFileSync(0, 'utf8');
-                    const words = input.trim().split(/\s+/);
-                    if (words.length >= 4) {
-                        const a = parseInt(words[0], 10);
-                        const b = parseInt(words[1], 10);
-                        const c = parseInt(words[2], 10);
-                        const s = words[3];
-                        console.log(`${a + b + c} ${s}`);
-                    }
-                }
-                main();
-                EOF
+                echo "const fs = require('fs');" > practice/a/main.js
+                echo 'function main() {' >> practice/a/main.js
+                echo '    const input = fs.readFileSync(0, "utf8");' >> practice/a/main.js
+                echo '    const words = input.trim().split(/\s+/);' >> practice/a/main.js
+                echo '    if (words.length >= 4) {' >> practice/a/main.js
+                echo '        const a = parseInt(words[0], 10);' >> practice/a/main.js
+                echo '        const b = parseInt(words[1], 10);' >> practice/a/main.js
+                echo '        const c = parseInt(words[2], 10);' >> practice/a/main.js
+                echo '        const s = words[3];' >> practice/a/main.js
+                echo '        console.log(`${a + b + c} ${s}`);' >> practice/a/main.js
+                echo '    }' >> practice/a/main.js
+                echo '}' >> practice/a/main.js
+                echo 'main();' >> practice/a/main.js
                 ;;
             esac
             
