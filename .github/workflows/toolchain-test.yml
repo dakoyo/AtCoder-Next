@@ -136,6 +136,15 @@ jobs:
           # ログを setup.log に保存しつつコンソールにも出力
           node dist/cli.js tools setup ${{ github.event.inputs.languages }} --yes 2>&1 | tee setup.log
 
+      - name: Add Installed Tools to PATH
+        shell: bash
+        run: |
+          # If Node 22.19.0 was installed via nvm (UNIX), add its bin directory to GITHUB_PATH
+          if [ -d "$HOME/.nvm/versions/node/v22.19.0/bin" ]; then
+            echo "$HOME/.nvm/versions/node/v22.19.0/bin" >> $GITHUB_PATH
+            echo "Added $HOME/.nvm/versions/node/v22.19.0/bin to GITHUB_PATH"
+          fi
+
       - name: Run Toolchain Doctor Test
         shell: bash
         run: |

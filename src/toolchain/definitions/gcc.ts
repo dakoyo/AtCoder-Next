@@ -82,7 +82,7 @@ export const gccDefinition: ToolchainDefinition = {
         versionSpecificity: "latest-only",
         requiresElevatedPrivileges: false,
         prerequisites: () => [
-          { command: "winget install MSYS2.MSYS2 --accept-source-agreements --accept-package-agreements",
+          { command: "powershell -Command \"if (Test-Path C:\\msys64) { Write-Output 'MSYS2 already exists, skipping installation.' } else { winget install MSYS2.MSYS2 --accept-source-agreements --accept-package-agreements }\"",
             description: "MSYS2（GCCのWindows向け配布基盤）をインストールします" },
         ],
         buildInstallSteps: () => [

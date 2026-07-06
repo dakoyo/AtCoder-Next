@@ -61,7 +61,7 @@ describe('resolveInstallPlan for GCC on Windows', () => {
     expect(plans).toHaveLength(1);
     expect(plans[0].strategy).toBe('package-manager');
     expect(plans[0].steps).toHaveLength(3);
-    expect(plans[0].steps[0].command).toBe('winget install MSYS2.MSYS2 --accept-source-agreements --accept-package-agreements');
+    expect(plans[0].steps[0].command).toBe('powershell -Command "if (Test-Path C:\\msys64) { Write-Output \'MSYS2 already exists, skipping installation.\' } else { winget install MSYS2.MSYS2 --accept-source-agreements --accept-package-agreements }"');
     expect(plans[0].steps[1].command).toContain('pacman -S --noconfirm');
     expect(plans[0].steps[2].command).toContain('SetEnvironmentVariable');
   });
