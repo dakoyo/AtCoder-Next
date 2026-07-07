@@ -155,8 +155,8 @@ export function loadExternalToolchains(): Record<string, ToolchainDefinition> {
         installMethods
       };
     }
-  } catch (e) {
-    // Ignore errors
+  } catch (e: any) {
+    console.warn(`[Warning] Failed to parse toolchains.json: ${e.message}. Custom toolchains will be ignored.`);
   }
   
   return definitions;

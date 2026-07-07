@@ -454,20 +454,20 @@ export const MESSAGES = {
     ja: (url: string) => `時間内に提出ステータスを判定できませんでした。詳細は以下で確認してください: https://atcoder.jp${url}`
   },
   submitTurnstileDetected: {
-    en: 'Cloudflare Turnstile challenge detected. Automated CLI submissions are blocked by AtCoder\'s bot protection. Please submit via your browser.',
-    ja: 'Cloudflare Turnstile チャレンジが検出されました。AtCoderの保護機能によりCLIからの自動提出がブロックされています。ブラウザから提出してください。'
+    en: 'AtCoder\'s bot protection (Turnstile) is active for this contest. We will switch to manual submission.',
+    ja: 'このコンテストではAtCoderのボット保護機能（Turnstile）が有効です。手動提出用のページを開きます。'
   },
   submitRejected: {
     en: 'Submission rejected by AtCoder. Please verify if your session is valid or if you are rate-limited.',
     ja: 'AtCoderにより提出が拒否されました。ログイン状態や短時間での連続提出でないか確認してください。'
   },
   submitFallbackMessage: {
-    en: (langName: string) => `We have opened the submission page in your default browser. Please select the appropriate language and submit your code manually.`,
-    ja: (langName: string) => `デフォルトのブラウザで提出ページを開きました。適切な言語を選択し、手動でコードを提出してください。`
+    en: (langName: string) => `Submission page opened in your browser. Please select the appropriate language and submit your code manually.`,
+    ja: (langName: string) => `ブラウザで提出用ページを開きました。適切な言語を選択し、手動でコードを提出してください。`
   },
   submitFallbackMessageWithClipboard: {
-    en: `We have opened the submission page in your default browser and copied your code to the clipboard.\nPlease select the appropriate language, paste (Cmd+V), and submit manually.`,
-    ja: `デフォルトのブラウザで提出ページを開き、コードをクリップボードにコピーしました。\n適切な言語を選択し、ペースト（Cmd+V）して手動で提出してください。`
+    en: `Submission page opened in your browser and your code has been copied to the clipboard.\nPlease select the appropriate language, paste (Cmd+V / Ctrl+V), and submit manually.`,
+    ja: `ブラウザで提出用ページを開きました。コードはクリップボードにコピーされていますので、貼り付けて（Ctrl+V / Cmd+V）手動で提出してください。`
   },
   submitAutomatedFallback: {
     en: 'We have launched the browser with your code pasted and language selected. Please review and click "Submit". The browser will close automatically.',

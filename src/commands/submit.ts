@@ -89,7 +89,9 @@ export async function handleSubmit(
 
   if (testRes.compileError) {
     p.log.error(pc.red(t('testCompilationFailed', locale)));
-    console.log(testRes.compileError);
+    console.error(pc.red('\n──────────────────────── Compilation Error ────────────────────────'));
+    console.error(testRes.compileError.trim());
+    console.error(pc.red('───────────────────────────────────────────────────────────────────\n'));
     process.exit(1);
   }
 
@@ -99,18 +101,25 @@ export async function handleSubmit(
     p.log.warn(t('submitNoSamples', locale));
   } else if (!allPassed) {
     p.log.warn(pc.yellow(t('submitTestsFailed', locale)));
-    if (!process.stdout.isTTY) {
-      p.log.error('Aborting submission automatically in non-interactive environment due to test failures.');
-      process.exit(1);
-    }
-    const confirmSubmit = await p.confirm({
-      message: t('submitConfirmMessage', locale),
-      initialValue: false
-    });
+    
+    const isYes = !process.stdout.isTTY || process.env.ATC_YES === 'true';
+    if (isYes) {
+      if (process.env.ATC_YES === 'true') {
+        p.log.warn('Proceeding with submission automatically due to --yes option.');
+      } else {
+        p.log.error('Aborting submission automatically in non-interactive environment due to test failures.');
+        process.exit(1);
+      }
+    } else {
+      const confirmSubmit = await p.confirm({
+        message: t('submitConfirmMessage', locale),
+        initialValue: false
+      });
 
-    if (p.isCancel(confirmSubmit) || !confirmSubmit) {
-      p.cancel(t('submitAborted', locale));
-      process.exit(0);
+      if (p.isCancel(confirmSubmit) || !confirmSubmit) {
+        p.cancel(t('submitAborted', locale));
+        process.exit(0);
+      }
     }
   }
 
@@ -124,21 +133,59 @@ export async function handleSubmit(
     subDetails = await submitTask(workspaceRoot, contestId, taskId, taskLabel, resolvedFile);
     submitSpinner.stop(t('submitSuccess', locale, subDetails.submissionId));
   } catch (err: any) {
-    submitSpinner.stop('Failed');
-    p.log.error(pc.red(err.message));
+    const isTurnstile = err.message.includes('Turnstile') ||
+                        err.message.includes('cf-challenge') ||
+                        err.message.includes('bot protection') ||
+                        err.message.includes('rejected') ||
+                        err.message === 'Error.' ||
+                        err.message === 'Error' ||
+                        err.message.includes(t('submitTurnstileDetected', locale)) ||
+                        err.message.includes(t('submitRejected', locale));
 
-    if (err.message.includes('Turnstile') || err.message.includes('cf-challenge') || err.message.includes('bot protection') || err.message.includes('rejected')) {
+    if (isTurnstile) {
+      submitSpinner.stop(pc.yellow('Manual Submit Required'));
+      
       const submitUrl = `https://atcoder.jp/contests/${contestId}/submit?taskScreenName=${taskId}`;
-      p.log.info(pc.cyan('\n' + t('submitFallbackMessage', locale)));
+      
+      // Copy code content to clipboard
+      let codeCopied = false;
+      try {
+        const { detectCodeFile } = require('../test-runner/runner');
+        const { loadConfig } = require('../config');
+        const activeConfig = loadConfig(workspaceRoot);
+        const { codeFile, langConfig } = detectCodeFile(workspaceRoot, resolvedTaskDir, activeConfig, options.file);
+        if (langConfig.submitFile) {
+          const submitFilePath = path.join(resolvedTaskDir, langConfig.submitFile);
+          if (fs.existsSync(submitFilePath)) {
+            const codeContent = fs.readFileSync(submitFilePath, 'utf8');
+            if (codeContent) {
+              const { writeClipboard } = require('../utils/clipboard');
+              codeCopied = writeClipboard(codeContent);
+            }
+          }
+        }
+      } catch {}
+
+      p.log.warn(pc.yellow(t('submitTurnstileDetected', locale)));
+      
+      if (codeCopied) {
+        p.log.info(pc.cyan(t('submitFallbackMessageWithClipboard', locale)));
+      } else {
+        p.log.info(pc.cyan(t('submitFallbackMessage', locale)));
+      }
       p.log.info(`Submission URL: ${pc.bold(submitUrl)}`);
 
       try {
         const { openUrl } = require('../utils/open');
         openUrl(submitUrl);
       } catch {}
-    }
 
-    process.exit(1);
+      process.exit(0);
+    } else {
+      submitSpinner.stop('Failed');
+      p.log.error(pc.red(err.message));
+      process.exit(1);
+    }
   }
 
   const pollSpinner = p.spinner();

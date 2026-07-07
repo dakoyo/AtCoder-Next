@@ -9,7 +9,7 @@ export async function handleInit(dirArg?: string, options?: any) {
   const systemLang: Locale = getSystemLocale();
   const defaultDisplayLang: Locale = systemLang === 'ja' ? 'ja' : 'en';
 
-  const isNonInteractive = !process.stdout.isTTY || (options && options.yes) || (process.env.ATC_NON_INTERACTIVE === 'true');
+  const isNonInteractive = !process.stdout.isTTY || (options && options.yes) || (process.env.ATC_NON_INTERACTIVE === 'true') || (process.env.ATC_YES === 'true');
 
   let selectedDisplayLang: Locale = defaultDisplayLang;
   let extractProblemStatement = false;

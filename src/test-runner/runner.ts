@@ -171,10 +171,16 @@ export function resolveCommands(
   actualFile: string,
   extension: string
 ): { build: string; run: string } {
-  return {
-    build: langConfig.build,
-    run: langConfig.run
-  };
+  let build = langConfig.build;
+  let run = langConfig.run;
+
+  const wrapper = process.env.ATC_EXEC_WRAPPER;
+  if (wrapper) {
+    if (build) build = `${wrapper} ${build}`;
+    if (run) run = `${wrapper} ${run}`;
+  }
+
+  return { build, run };
 }
 
 /**

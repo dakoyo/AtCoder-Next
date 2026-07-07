@@ -172,7 +172,7 @@ function generateDiff(oldConfig: any, newConfig: any): string {
 }
 
 export async function runDoctor(options: { languages?: string[]; refresh?: boolean; yes?: boolean } = {}) {
-  const yes = !process.stdout.isTTY || options.yes;
+  const yes = !process.stdout.isTTY || options.yes || process.env.ATC_YES === 'true';
   const workspaceRoot = findWorkspaceRoot();
   const config = loadConfig(workspaceRoot);
   const displayLang = config.lang || 'en';
@@ -369,7 +369,7 @@ export interface SetupOptions {
 }
 
 export async function runSetup(options: SetupOptions = {}) {
-  const yes = !process.stdout.isTTY || options.yes;
+  const yes = !process.stdout.isTTY || options.yes || process.env.ATC_YES === 'true';
   const workspaceRoot = findWorkspaceRoot();
   const config = loadConfig(workspaceRoot);
   const displayLang = options.displayLangFromDoctor || config.lang || 'en';

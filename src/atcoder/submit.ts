@@ -54,6 +54,13 @@ export async function submitTask(
     const res = await client.get(`/contests/${contestId}/submit?taskScreenName=${taskId}`);
     submitPageHtml = res.data;
   } catch (err: any) {
+    const html = err.response?.data;
+    if (html && (html.includes('cf-challenge') || html.includes('challenges.cloudflare.com') || html.includes('Turnstile') || html.includes('cf-turnstile'))) {
+      throw new AtcError(t('submitTurnstileDetected', locale));
+    }
+    if (err.response?.status === 403) {
+      throw new AtcError(t('submitTurnstileDetected', locale));
+    }
     throw new AtcError(`Failed to access AtCoder submit page: ${err.message}`);
   }
 
@@ -163,16 +170,27 @@ export async function submitTask(
     });
 
     if (postRes.status !== 302) {
-      console.log(postRes.data);
       const $post = cheerio.load(postRes.data);
+      
+      const hasTurnstile = $post('.cf-challenge').length > 0 || 
+                           postRes.data.includes('cf-challenge') || 
+                           postRes.data.includes('challenges.cloudflare.com') || 
+                           postRes.data.includes('Turnstile') || 
+                           postRes.data.includes('cf-turnstile');
+      if (hasTurnstile) {
+        throw new AtcError(t('submitTurnstileDetected', locale));
+      }
+
       let alertText = $post('.alert-danger, .alert-warning').text().trim();
       if (!alertText) {
-        if ($post('.cf-challenge').length > 0) {
-          throw new AtcError(t('submitTurnstileDetected', locale));
-        }
         throw new AtcError(t('submitRejected', locale));
       }
       alertText = alertText.replace(/^×\s*/, '').trim();
+      
+      // If the alert text is simply "Error.", it might be a Cloudflare block page
+      if (alertText.toLowerCase() === 'error' || alertText.toLowerCase() === 'error.') {
+        throw new AtcError(t('submitTurnstileDetected', locale));
+      }
       throw new AtcError(alertText);
     }
 
@@ -199,6 +217,16 @@ export async function submitTask(
       url: `/contests/${contestId}/submissions/${submissionId}`
     };
   } catch (err: any) {
+    if (err instanceof AtcError) {
+      throw err;
+    }
+    const html = err.response?.data;
+    if (html && (html.includes('cf-challenge') || html.includes('challenges.cloudflare.com') || html.includes('Turnstile') || html.includes('cf-turnstile'))) {
+      throw new AtcError(t('submitTurnstileDetected', locale));
+    }
+    if (err.response?.status === 403) {
+      throw new AtcError(t('submitTurnstileDetected', locale));
+    }
     throw new AtcError(`Failed to submit code: ${err.message}`);
   }
 }

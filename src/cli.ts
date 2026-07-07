@@ -42,6 +42,10 @@ program
 
 function handleAction(fn: (...args: any[]) => Promise<void>) {
   return async (...args: any[]) => {
+    // Map global --yes option to an environment variable for command handlers to read
+    if (program.opts().yes) {
+      process.env.ATC_YES = 'true';
+    }
     try {
       await fn(...args);
     } catch (err: any) {
@@ -97,12 +101,14 @@ program
 
 program
   .command('test [contestIdOrTask] [taskLabel]')
+  .alias('t')
   .description(h('descTest'))
   .option('-f, --file <file>', 'Specify the source file to test')
   .action(handleAction(handleTest));
 
 program
   .command('submit [contestIdOrTask] [taskLabel]')
+  .alias('s')
   .description(h('descSubmit'))
   .option('-f, --file <file>', 'Specify the source file to submit')
   .action(handleAction(handleSubmit));
@@ -129,7 +135,7 @@ languageCmd
 
 const toolsCmd = program
   .command('tools')
-  .alias('t')
+  .alias('tl')
   .description(h('descTools'));
 
 toolsCmd
@@ -139,8 +145,8 @@ toolsCmd
   .addHelpText('after', `
 Examples:
   $ atc tools bundle main.cpp -o bundle.cpp
-  $ atc t bundle src/main.rs -o bundle.rs
-  $ atc t bundle index.ts -o dist/bundle.js --minify
+  $ atc tl bundle src/main.rs -o bundle.rs
+  $ atc tl bundle index.ts -o dist/bundle.js --minify
 
 Note:
   - The output path must be within the workspace root directory.
