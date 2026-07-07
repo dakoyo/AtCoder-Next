@@ -1,12 +1,12 @@
 import * as p from '@clack/prompts';
 import * as path from 'path';
 import { findWorkspaceRoot } from '../workspace/finder';
-import { getLanguage, t } from '../utils/i18n';
+import { getLocale, t } from '../utils/i18n';
 import { bundleFiles } from '../utils/bundler';
 
 export async function handleBundle(entryFile: string, options: { output?: string }) {
   const workspaceRoot = findWorkspaceRoot();
-  const lang = getLanguage(workspaceRoot);
+  const locale = getLocale(workspaceRoot);
 
   let inputs: string[] = [entryFile];
   let output: string | undefined = options.output;
@@ -29,7 +29,7 @@ export async function handleBundle(entryFile: string, options: { output?: string
 
   try {
     bundleFiles(inputs, output, workspaceRoot, extraArgs);
-    s.stop(t('bundleSuccess', lang, output));
+    s.stop(t('bundleSuccess', locale, output));
   } catch (err: any) {
     s.stop('Failed');
     throw err;

@@ -3,7 +3,7 @@ import pc from 'picocolors';
 import * as path from 'path';
 import * as fs from 'fs';
 import { findWorkspaceRoot } from '../workspace/finder';
-import { getLanguage, t } from '../utils/i18n';
+import { getLocale, t } from '../utils/i18n';
 import { resolveArgs } from './utils';
 import { createAtCoderClient } from '../atcoder/client';
 import { fetchContestTasks } from '../atcoder/new';
@@ -19,7 +19,7 @@ export async function handleSubmit(
   options: { file?: string }
 ) {
   const workspaceRoot = findWorkspaceRoot();
-  const lang = getLanguage(workspaceRoot);
+  const locale = getLocale(workspaceRoot);
   const { resolvedTaskDir, resolvedFile, taskLabel, contestId } = resolveArgs(
     workspaceRoot,
     contestIdOrTask,
@@ -27,7 +27,7 @@ export async function handleSubmit(
     { file: options.file }
   );
 
-  p.intro(pc.cyan(t('submitPreparing', lang, contestId, taskLabel)));
+  p.intro(pc.cyan(t('submitPreparing', locale, contestId, taskLabel)));
 
   let timeLimitMs = 2000;
   let taskId = '';
@@ -57,12 +57,12 @@ export async function handleSubmit(
 
   if (!loadedFromCache) {
     const s = p.spinner();
-    s.start(t('submitRetrievingLimits', lang));
+    s.start(t('submitRetrievingLimits', locale));
     try {
       const res = await client.get(`/contests/${contestId}/tasks/${taskId}`);
       const details = parseProblemPage(res.data);
       timeLimitMs = details.timeLimitMs;
-      s.stop(t('testLoadedLimits', lang, timeLimitMs));
+      s.stop(t('testLoadedLimits', locale, timeLimitMs));
       
       let metadata: any = { tasks: {} };
       if (fs.existsSync(metadataPath)) {
@@ -80,15 +80,15 @@ export async function handleSubmit(
       };
       fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
     } catch (err) {
-      s.stop(t('testDefaultLimitsError', lang));
+      s.stop(t('testDefaultLimitsError', locale));
     }
   }
 
-  p.log.step(t('submitRunningTests', lang));
+  p.log.step(t('submitRunningTests', locale));
   const testRes = await runAllTests(workspaceRoot, resolvedTaskDir, resolvedFile, timeLimitMs);
 
   if (testRes.compileError) {
-    p.log.error(pc.red(t('testCompilationFailed', lang)));
+    p.log.error(pc.red(t('testCompilationFailed', locale)));
     console.log(testRes.compileError);
     process.exit(1);
   }
@@ -96,37 +96,53 @@ export async function handleSubmit(
   const allPassed = testRes.results.length > 0 && testRes.results.every(r => r.status === 'AC');
 
   if (testRes.results.length === 0) {
-    p.log.warn(t('submitNoSamples', lang));
+    p.log.warn(t('submitNoSamples', locale));
   } else if (!allPassed) {
-    p.log.warn(pc.yellow(t('submitTestsFailed', lang)));
+    p.log.warn(pc.yellow(t('submitTestsFailed', locale)));
+    if (!process.stdout.isTTY) {
+      p.log.error('Aborting submission automatically in non-interactive environment due to test failures.');
+      process.exit(1);
+    }
     const confirmSubmit = await p.confirm({
-      message: t('submitConfirmMessage', lang),
+      message: t('submitConfirmMessage', locale),
       initialValue: false
     });
 
     if (p.isCancel(confirmSubmit) || !confirmSubmit) {
-      p.cancel(t('submitAborted', lang));
+      p.cancel(t('submitAborted', locale));
       process.exit(0);
     }
-  } else {
-    p.log.success(pc.green(t('submitTestsPassed', lang)));
   }
 
-  const subSpinner = p.spinner();
-  subSpinner.start(t('submitSubmitting', lang));
+  p.log.success(t('submitTestsPassed', locale));
+
+  const submitSpinner = p.spinner();
+  submitSpinner.start(t('submitSubmitting', locale));
+  
   let subDetails;
   try {
     subDetails = await submitTask(workspaceRoot, contestId, taskId, taskLabel, resolvedFile);
-    subSpinner.stop(t('submitSuccess', lang, subDetails.submissionId));
-    p.note(`https://atcoder.jp${subDetails.url}`, 'Submission URL');
+    submitSpinner.stop(t('submitSuccess', locale, subDetails.submissionId));
   } catch (err: any) {
-    subSpinner.stop('Failed');
+    submitSpinner.stop('Failed');
     p.log.error(pc.red(err.message));
+
+    if (err.message.includes('Turnstile') || err.message.includes('cf-challenge') || err.message.includes('bot protection') || err.message.includes('rejected')) {
+      const submitUrl = `https://atcoder.jp/contests/${contestId}/submit?taskScreenName=${taskId}`;
+      p.log.info(pc.cyan('\n' + t('submitFallbackMessage', locale)));
+      p.log.info(`Submission URL: ${pc.bold(submitUrl)}`);
+
+      try {
+        const { openUrl } = require('../utils/open');
+        openUrl(submitUrl);
+      } catch {}
+    }
+
     process.exit(1);
   }
 
   const pollSpinner = p.spinner();
-  pollSpinner.start(t('submitWaitingJudge', lang));
+  pollSpinner.start(t('submitWaitingJudge', locale));
   
   let currentInterval = 2000;
   let lastStatusStr = '';
@@ -143,7 +159,7 @@ export async function handleSubmit(
 
       if (status.isCompleted) {
         completed = true;
-        pollSpinner.stop(t('submitJudgeFinished', lang, status.status));
+        pollSpinner.stop(t('submitJudgeFinished', locale, status.status));
         
         const stats = [];
         if (status.score) stats.push(`Score: ${status.score}`);
@@ -152,9 +168,9 @@ export async function handleSubmit(
         const statsStr = stats.length > 0 ? ` (${stats.join(', ')})` : '';
 
         if (status.status === 'AC') {
-          p.log.success(`${pc.green(pc.bold('[AC]'))} ${t('submitAccepted', lang)}${statsStr}`);
+          p.log.success(`${pc.green(pc.bold('[AC]'))} ${t('submitAccepted', locale)}${statsStr}`);
         } else {
-          p.log.error(`${pc.red(pc.bold(`[${status.status}]`))} ${t('submitFailed', lang)}${statsStr}`);
+          p.log.error(`${pc.red(pc.bold(`[${status.status}]`))} ${t('submitFailed', locale)}${statsStr}`);
         }
         break;
       }
@@ -173,8 +189,8 @@ export async function handleSubmit(
   }
 
   if (!completed) {
-    pollSpinner.stop(t('submitTimeout', lang));
-    p.log.warn(t('submitTimeoutWarn', lang, subDetails.url));
+    pollSpinner.stop(t('submitTimeout', locale));
+    p.log.warn(t('submitTimeoutWarn', locale, subDetails.url));
   }
 
   p.outro(pc.green('Done.'));

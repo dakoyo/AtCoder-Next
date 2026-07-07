@@ -6,7 +6,7 @@ import { Command } from 'commander';
 import pc from 'picocolors';
 
 import { findWorkspaceRoot } from './workspace/finder';
-import { getLanguage, t } from './utils/i18n';
+import { getLocale, t, h } from './utils/i18n';
 import { WorkspaceNotFoundError } from './utils/errors';
 
 // Import command handlers
@@ -29,7 +29,7 @@ const workspaceRoot = (() => {
     return undefined;
   }
 })();
-const lang = getLanguage(workspaceRoot);
+const locale = getLocale(workspaceRoot);
 
 const program = new Command();
 
@@ -37,7 +37,8 @@ program
   .name('atc')
   .description('AtCoder Next')
   .version(pkg.version)
-  .option('--debug', 'Enable debug output and stack trace');
+  .option('--debug', 'Enable debug output and stack trace')
+  .option('-y, --yes', 'Skip all prompts and use default choices (non-interactive mode)');
 
 function handleAction(fn: (...args: any[]) => Promise<void>) {
   return async (...args: any[]) => {
@@ -46,7 +47,11 @@ function handleAction(fn: (...args: any[]) => Promise<void>) {
     } catch (err: any) {
       let errMsg = err.message || 'An unexpected error occurred.';
       if (err instanceof WorkspaceNotFoundError) {
-        errMsg = t('workspaceNotFound', lang);
+        errMsg = t('workspaceNotFound', locale);
+      } else if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || errMsg.includes('timeout')) {
+        errMsg = locale === 'ja'
+          ? 'ネットワーク接続に失敗しました。インターネット接続状況、または AtCoder サーバーの稼働状態を確認してください。'
+          : 'Network connection failed. Please check your internet connection or AtCoder server status.';
       }
       console.error(pc.red(errMsg));
       
@@ -60,51 +65,51 @@ function handleAction(fn: (...args: any[]) => Promise<void>) {
 }
 
 program
-  .command('init')
-  .description(t('descInit', lang))
+  .command('init [dir]')
+  .description(h('descInit'))
   .action(handleAction(handleInit));
 
 program
   .command('login')
-  .description(t('descLogin', lang))
+  .description(h('descLogin'))
   .action(handleAction(handleLogin));
 
 program
   .command('logout')
-  .description(t('descLogout', lang))
+  .description(h('descLogout'))
   .action(handleAction(handleLogout));
 
 program
   .command('whoami')
-  .description(t('descWhoami', lang))
+  .description(h('descWhoami'))
   .action(handleAction(handleWhoami));
 
 program
   .command('new <contest> [task]')
-  .description(t('descNew', lang))
+  .description(h('descNew'))
   .option('-a, --all', 'Download all tasks for the contest')
   .action(handleAction(handleNew));
 
 program
   .command('open [contestId] [taskLabel]')
-  .description(t('descOpen', lang))
+  .description(h('descOpen'))
   .action(handleAction(handleOpen));
 
 program
   .command('test [contestIdOrTask] [taskLabel]')
-  .description(t('descTest', lang))
+  .description(h('descTest'))
   .option('-f, --file <file>', 'Specify the source file to test')
   .action(handleAction(handleTest));
 
 program
   .command('submit [contestIdOrTask] [taskLabel]')
-  .description(t('descSubmit', lang))
+  .description(h('descSubmit'))
   .option('-f, --file <file>', 'Specify the source file to submit')
   .action(handleAction(handleSubmit));
 
 program
   .command('lang [langName]')
-  .description(t('descLang', lang))
+  .description(h('descLang'))
   .action(handleAction(handleLang));
 
 const languageCmd = program
@@ -114,35 +119,45 @@ const languageCmd = program
 
 languageCmd
   .command('add [langName]')
-  .description(t('descAddLang', lang))
+  .description(h('descAddLang'))
   .action(handleAction(handleAddLang));
 
 languageCmd
   .command('default [langName]')
-  .description(t('descDefaultLang', lang))
+  .description(h('descDefaultLang'))
   .action(handleAction(handleDefaultLang));
 
 const toolsCmd = program
   .command('tools')
   .alias('t')
-  .description(t('descTools', lang));
+  .description(h('descTools'));
 
 toolsCmd
   .command('bundle <entryFile>')
-  .description(t('descBundle', lang))
+  .description(h('descBundle'))
   .option('-o, --output <file>', 'Output bundle file')
+  .addHelpText('after', `
+Examples:
+  $ atc tools bundle main.cpp -o bundle.cpp
+  $ atc t bundle src/main.rs -o bundle.rs
+  $ atc t bundle index.ts -o dist/bundle.js --minify
+
+Note:
+  - The output path must be within the workspace root directory.
+  - Files outside the workspace root cannot be bundled.
+  `)
   .action(handleAction(handleBundle));
 
 toolsCmd
   .command('doctor [languages...]')
-  .description(t('descDoctor' as any, lang))
+  .description(h('descDoctor' as any))
   .option('--refresh', 'Refresh the AtCoder compiler version cache')
   .option('--yes', 'Run in non-interactive mode and exit with code 1 if mismatch found')
   .action(handleAction(handleDoctor));
 
 toolsCmd
   .command('setup [languages...]')
-  .description(t('descSetup' as any, lang))
+  .description(h('descSetup' as any))
   .option('--refresh', 'Refresh the AtCoder compiler version cache')
   .option('--dry-run', 'Show setup commands and diffs without running them')
   .option('--yes', 'Skip all prompts and use default choices')

@@ -116,6 +116,21 @@ atc submit abc300 a
 
 * Compiles and runs local tests automatically before making a submission. If any tests fail, a prompt will ask whether you still want to proceed with the submission.
 
+### 4. Language Settings
+
+```bash
+# Switch CLI display language (en or ja)
+atc lang [en|ja]
+
+# Add a new programming language configuration
+atc language add [lang_id]
+# Alias "l" can also be used
+atc l add python
+
+# Change the default programming language for the workspace
+atc language default [lang_id]
+```
+
 ---
 
 ## Extended Tools

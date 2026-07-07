@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getSystemLanguage, getLanguage, t } from './i18n';
+import { getSystemLocale, getLocale, t } from './i18n';
 import * as configStore from '../config';
 
 describe('i18n utilities', () => {
@@ -13,26 +13,26 @@ describe('i18n utilities', () => {
     process.env = originalEnv;
   });
 
-  describe('getSystemLanguage', () => {
+  describe('getSystemLocale', () => {
     it('should return ja if process.env.LANG contains ja', () => {
       process.env.LANG = 'ja_JP.UTF-8';
-      expect(getSystemLanguage()).toBe('ja');
+      expect(getSystemLocale()).toBe('ja');
     });
 
     it('should return ja if process.env.LANGUAGE contains ja', () => {
       process.env.LANG = 'en_US.UTF-8';
       process.env.LANGUAGE = 'ja';
-      expect(getSystemLanguage()).toBe('ja');
+      expect(getSystemLocale()).toBe('ja');
     });
 
     it('should return en if no japanese env variable is found', () => {
       process.env.LANG = 'en_US.UTF-8';
       process.env.LANGUAGE = 'en';
-      expect(getSystemLanguage()).toBe('en');
+      expect(getSystemLocale()).toBe('en');
     });
   });
 
-  describe('getLanguage', () => {
+  describe('getLocale', () => {
     it('should check configuration first', () => {
       const spy = vi.spyOn(configStore, 'loadConfig').mockReturnValue({
         defaultLanguage: 'cpp',
@@ -41,12 +41,12 @@ describe('i18n utilities', () => {
         lang: 'ja'
       });
 
-      const language = getLanguage('/some/root');
-      expect(language).toBe('ja');
+      const locale = getLocale('/some/root');
+      expect(locale).toBe('ja');
       spy.mockRestore();
     });
 
-    it('should fall back to system language if config is empty', () => {
+    it('should fall back to system locale if config is empty', () => {
       const spy = vi.spyOn(configStore, 'loadConfig').mockReturnValue({
         defaultLanguage: 'cpp',
         languages: {},
@@ -54,8 +54,8 @@ describe('i18n utilities', () => {
       });
       process.env.LANG = 'ja_JP.UTF-8';
 
-      const language = getLanguage('/some/root');
-      expect(language).toBe('ja');
+      const locale = getLocale('/some/root');
+      expect(locale).toBe('ja');
       spy.mockRestore();
     });
   });

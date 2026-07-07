@@ -4,6 +4,20 @@ import * as esbuild from 'esbuild';
 import { spawnSync } from 'child_process';
 import { AtcError } from './errors';
 
+export function validatePathInsideWorkspace(targetPath: string, workspaceRoot: string | undefined): void {
+  if (!workspaceRoot) return;
+  const resolvedTarget = path.resolve(targetPath);
+  const resolvedRoot = path.resolve(workspaceRoot);
+  
+  const relative = path.relative(resolvedRoot, resolvedTarget);
+  const isInside = relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+  const isRoot = resolvedTarget === resolvedRoot;
+
+  if (!isInside && !isRoot) {
+    throw new AtcError(`Access denied: File "${targetPath}" is outside the workspace root.`);
+  }
+}
+
 export interface LanguageConfig {
   extensions: string[];
   detectImport: (line: string, inBlockComment: boolean) => string | null;
@@ -167,6 +181,7 @@ function bundlePython(inputs: string[], resolvedOutputPath: string, workspaceRoo
 
   function processPythonFile(filePath: string, isEntry: boolean = false): void {
     const absolutePath = path.resolve(filePath);
+    validatePathInsideWorkspace(absolutePath, workspaceRoot);
 
     if (activeStack.includes(absolutePath)) {
       throw new AtcError(`Circular dependency detected: ${activeStack.join(' -> ')} -> ${absolutePath}`);
@@ -334,6 +349,8 @@ function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?
       throw new AtcError(`Input file and output file cannot be the same: "${input}".`);
     }
 
+    validatePathInsideWorkspace(absoluteInputPath, workspaceRoot);
+
     try {
       const minify = extraArgs.includes('--minify');
       const hasSourcemap = extraArgs.some(arg => arg.startsWith('--sourcemap'));
@@ -405,6 +422,7 @@ function bundleRust(inputs: string[], resolvedOutputPath: string, workspaceRoot?
 
   function processRustFile(filePath: string): string[] {
     const absolutePath = path.resolve(filePath);
+    validatePathInsideWorkspace(absolutePath, workspaceRoot);
 
     if (activeStack.includes(absolutePath)) {
       throw new AtcError(`Circular dependency detected: ${activeStack.join(' -> ')} -> ${absolutePath}`);
@@ -564,6 +582,8 @@ export function bundleFiles(inputs: string[], outputPath: string, workspaceRoot?
         throw new AtcError(`File not found: ${filePath}`);
       }
     }
+
+    validatePathInsideWorkspace(absolutePath, workspaceRoot);
 
     if (activeStack.includes(absolutePath)) {
       throw new AtcError(`Circular dependency detected: ${activeStack.join(' -> ')} -> ${absolutePath}`);

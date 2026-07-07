@@ -3,7 +3,7 @@ import pc from 'picocolors';
 import * as path from 'path';
 import * as fs from 'fs';
 import { findWorkspaceRoot } from '../workspace/finder';
-import { getLanguage, t } from '../utils/i18n';
+import { getLocale, t } from '../utils/i18n';
 import { resolveArgs } from './utils';
 import { createAtCoderClient } from '../atcoder/client';
 import { fetchContestTasks } from '../atcoder/new';
@@ -17,7 +17,7 @@ export async function handleTest(
   options: { file?: string }
 ) {
   const workspaceRoot = findWorkspaceRoot();
-  const lang = getLanguage(workspaceRoot);
+  const locale = getLocale(workspaceRoot);
   const { resolvedTaskDir, resolvedFile, taskLabel, contestId } = resolveArgs(
     workspaceRoot,
     contestIdOrTask,
@@ -25,7 +25,7 @@ export async function handleTest(
     { file: options.file }
   );
 
-  p.intro(pc.cyan(t('testIntro', lang, contestId, taskLabel)));
+  p.intro(pc.cyan(t('testIntro', locale, contestId, taskLabel)));
 
   let timeLimitMs = 2000;
   const metadataPath = path.join(workspaceRoot, '.atcoder-next', 'contest-metadata.json');
@@ -44,7 +44,7 @@ export async function handleTest(
 
   if (!loadedFromCache) {
     const s = p.spinner();
-    s.start(t('testRetrievingLimits', lang));
+    s.start(t('testRetrievingLimits', locale));
     try {
       const client = createAtCoderClient(workspaceRoot);
       const tasks = await fetchContestTasks(workspaceRoot, contestId);
@@ -54,7 +54,7 @@ export async function handleTest(
         const res = await client.get(`/contests/${contestId}/tasks/${taskInfo.id}`);
         const details = parseProblemPage(res.data);
         timeLimitMs = details.timeLimitMs;
-        s.stop(t('testLoadedLimits', lang, timeLimitMs));
+        s.stop(t('testLoadedLimits', locale, timeLimitMs));
         
         let metadata: any = { tasks: {} };
         if (fs.existsSync(metadataPath)) {
@@ -72,26 +72,28 @@ export async function handleTest(
         };
         fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
       } else {
-        s.stop(t('testDefaultLimits', lang));
+        s.stop(t('testDefaultLimits', locale));
       }
     } catch (err) {
-      s.stop(t('testDefaultLimitsError', lang));
+      s.stop(t('testDefaultLimitsError', locale));
     }
   }
 
   const testSpinner = p.spinner();
-  testSpinner.start(t('testCompilingRunning', lang));
+  testSpinner.start(t('testCompilingRunning', locale));
   const testRes = await runAllTests(workspaceRoot, resolvedTaskDir, resolvedFile, timeLimitMs);
-  testSpinner.stop(t('testFinished', lang));
+  testSpinner.stop(t('testFinished', locale));
 
   if (testRes.compileError) {
-    p.log.error(pc.red(t('testCompilationFailed', lang)));
-    console.log(testRes.compileError);
+    p.log.error(pc.red(t('testCompilationFailed', locale)));
+    console.error(pc.red('\n──────────────────────── Compilation Error ────────────────────────'));
+    console.error(testRes.compileError.trim());
+    console.error(pc.red('───────────────────────────────────────────────────────────────────\n'));
     process.exit(1);
   }
 
   if (testRes.results.length === 0) {
-    p.log.warn(t('testNoSamples', lang));
+    p.log.warn(t('testNoSamples', locale));
     process.exit(0);
   }
 
@@ -108,31 +110,26 @@ export async function handleTest(
       p.log.error(`${pc.red(pc.bold('[WA]'))} ${label}: Failed (${duration}${memory})`);
       console.log(`   ${pc.gray('┌────────────────────────────────────────────────────────')}`);
       console.log(`   ${pc.gray('│')} ${pc.bold('Expected Output:')}`);
-      formatOutputLines(res.expectedOutput, res.firstDiffLine).forEach(l => console.log(l));
+      console.log(formatOutputLines(res.expectedOutput, res.firstDiffLine).join('\n'));
       console.log(`   ${pc.gray('├────────────────────────────────────────────────────────')}`);
       console.log(`   ${pc.gray('│')} ${pc.bold('Actual Output:')}`);
-      formatOutputLines(res.actualOutput, res.firstDiffLine).forEach(l => console.log(l));
-      if (res.firstDiffLine) {
-        console.log(`   ${pc.gray('├────────────────────────────────────────────────────────')}`);
-        console.log(`   ${pc.gray('│')} ${pc.yellow(`First mismatch on line ${res.firstDiffLine}`)}`);
-      }
+      console.log(formatOutputLines(res.actualOutput, res.firstDiffLine).join('\n'));
       console.log(`   ${pc.gray('└────────────────────────────────────────────────────────')}`);
-    } else if (res.status === 'TLE') {
-      allPassed = false;
-      p.log.error(`${pc.red(pc.bold('[TLE]'))} ${label}: Time Limit Exceeded (${duration}${memory} vs Limit ${timeLimitMs} ms)`);
     } else if (res.status === 'RE') {
       allPassed = false;
       p.log.error(`${pc.red(pc.bold('[RE]'))} ${label}: Runtime Error (${duration}${memory})`);
-      if (res.errorOutput) {
-        console.log(`   ${pc.gray('┌────────────────────────────────────────────────────────')}`);
-        console.log(`   ${pc.gray('│')} ${pc.bold('Error Output:')}`);
-        formatErrorOutputLines(res.errorOutput).forEach(l => console.log(l));
-        console.log(`   ${pc.gray('└────────────────────────────────────────────────────────')}`);
-      }
+      console.log(`   ${pc.gray('┌────────────────────────────────────────────────────────')}`);
+      console.log(`   ${pc.gray('│')} ${pc.bold('Error Output:')}`);
+      console.log(formatErrorOutputLines(res.errorOutput || '').join('\n'));
+      console.log(`   ${pc.gray('└────────────────────────────────────────────────────────')}`);
+    } else if (res.status === 'TLE') {
+      allPassed = false;
+      p.log.error(`${pc.red(pc.bold('[TLE]'))} ${label}: Time Limit Exceeded (Limit: ${timeLimitMs} ms)`);
     }
   }
 
-  p.outro(allPassed ? pc.green(t('testOutroPassed', lang)) : pc.red(t('testOutroFailed', lang)));
+  p.outro(allPassed ? pc.green(t('testOutroPassed', locale)) : pc.red(t('testOutroFailed', locale)));
+
   if (!allPassed) {
     process.exit(1);
   }

@@ -155,6 +155,50 @@ export function getConfigPath(workspaceRoot: string): string {
   return path.join(workspaceRoot, '.atcoder-next', 'settings.json');
 }
 
+function validateConfig(parsed: any): Config {
+  const config = { ...DEFAULT_CONFIG, languages: { ...DEFAULT_CONFIG.languages } };
+
+  if (parsed && typeof parsed === 'object') {
+    if (typeof parsed.defaultLanguage === 'string') {
+      config.defaultLanguage = parsed.defaultLanguage;
+    }
+    if (parsed.languages && typeof parsed.languages === 'object') {
+      config.languages = {};
+      for (const [langKey, langConf] of Object.entries(parsed.languages)) {
+        if (langConf && typeof langConf === 'object') {
+          const conf = langConf as any;
+          config.languages[langKey] = {
+            extension: typeof conf.extension === 'string' ? conf.extension : langKey,
+            templateDir: typeof conf.templateDir === 'string' ? conf.templateDir : `templates/${langKey}`,
+            build: typeof conf.build === 'string' ? conf.build : '',
+            run: typeof conf.run === 'string' ? conf.run : '',
+            submitFile: typeof conf.submitFile === 'string' ? conf.submitFile : '',
+            atcoderLanguage: typeof conf.atcoderLanguage === 'string' ? conf.atcoderLanguage : '',
+            atcoderLanguageIdRegex: typeof conf.atcoderLanguageIdRegex === 'string' ? conf.atcoderLanguageIdRegex : ''
+          };
+        }
+      }
+    }
+    if (typeof parsed.testDirName === 'string') {
+      config.testDirName = parsed.testDirName;
+    }
+    if (typeof parsed.contestDir === 'string') {
+      config.contestDir = parsed.contestDir;
+    }
+    if (parsed.lang === 'en' || parsed.lang === 'ja') {
+      config.lang = parsed.lang;
+    }
+    if (typeof parsed.extractProblemStatement === 'boolean') {
+      config.extractProblemStatement = parsed.extractProblemStatement;
+    }
+    if (parsed.problemLang === 'en' || parsed.problemLang === 'ja') {
+      config.problemLang = parsed.problemLang;
+    }
+  }
+
+  return config;
+}
+
 export function loadConfig(workspaceRoot: string): Config {
   const configPath = getConfigPath(workspaceRoot);
   const oldConfigPath = path.join(workspaceRoot, '.atcoder-next', 'config.json');
@@ -163,7 +207,7 @@ export function loadConfig(workspaceRoot: string): Config {
     try {
       fs.renameSync(oldConfigPath, configPath);
     } catch (e) {
-      // Ignore renaming error, it will fall back to reading oldConfigPath or default config
+      // Ignore renaming error
     }
   }
 
@@ -171,11 +215,7 @@ export function loadConfig(workspaceRoot: string): Config {
     try {
       const raw = fs.readFileSync(oldConfigPath, 'utf8');
       const parsed = JSON.parse(raw);
-      return {
-        ...DEFAULT_CONFIG,
-        ...parsed,
-        languages: parsed.languages ? parsed.languages : DEFAULT_CONFIG.languages
-      };
+      return validateConfig(parsed);
     } catch (e) {
       return DEFAULT_CONFIG;
     }
@@ -187,11 +227,7 @@ export function loadConfig(workspaceRoot: string): Config {
   try {
     const raw = fs.readFileSync(configPath, 'utf8');
     const parsed = JSON.parse(raw);
-    return {
-      ...DEFAULT_CONFIG,
-      ...parsed,
-      languages: parsed.languages ? parsed.languages : DEFAULT_CONFIG.languages
-    };
+    return validateConfig(parsed);
   } catch (e) {
     return DEFAULT_CONFIG;
   }

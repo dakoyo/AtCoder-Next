@@ -172,6 +172,7 @@ function generateDiff(oldConfig: any, newConfig: any): string {
 }
 
 export async function runDoctor(options: { languages?: string[]; refresh?: boolean; yes?: boolean } = {}) {
+  const yes = !process.stdout.isTTY || options.yes;
   const workspaceRoot = findWorkspaceRoot();
   const config = loadConfig(workspaceRoot);
   const displayLang = config.lang || 'en';
@@ -191,7 +192,7 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
     s.stop(t('doctorFetchFailed' as any, displayLang));
     p.log.error(pc.red(err.message));
     p.outro(pc.red(t('doctorOutroFailed' as any, displayLang)));
-    if (options.yes) {
+    if (yes) {
       process.exit(1);
     }
     return;
@@ -206,7 +207,7 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
   }
 
   let selection: string[];
-  if (options.yes) {
+  if (yes) {
     selection = configuredLangs;
   } else {
     selection = assertNotCancelled(
@@ -317,7 +318,7 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
 
   printCustomBlock(t('doctorResultsTitle' as any, displayLang), tableContent);
 
-  if (options.yes) {
+  if (yes) {
     p.outro(pc.green(t('doctorFinished' as any, displayLang)));
     const hasMismatch = results.some(r => r.status === 'mismatch');
     if (hasMismatch) {
@@ -368,6 +369,7 @@ export interface SetupOptions {
 }
 
 export async function runSetup(options: SetupOptions = {}) {
+  const yes = !process.stdout.isTTY || options.yes;
   const workspaceRoot = findWorkspaceRoot();
   const config = loadConfig(workspaceRoot);
   const displayLang = options.displayLangFromDoctor || config.lang || 'en';
@@ -385,7 +387,7 @@ export async function runSetup(options: SetupOptions = {}) {
     s.stop(t('setupFetchFailed' as any, displayLang));
     p.log.error(pc.red(err.message));
     p.outro(pc.red(t('setupOutroFailed' as any, displayLang)));
-    if (options.yes) {
+    if (yes) {
       process.exit(1);
     }
     return;
@@ -399,7 +401,7 @@ export async function runSetup(options: SetupOptions = {}) {
       p.log.error(pc.red(t('setupNoLanguagesConfigured' as any, displayLang)));
       process.exit(1);
     }
-    if (options.yes) {
+    if (yes) {
       targetLangs = configuredLangs;
     } else {
       targetLangs = assertNotCancelled(
@@ -424,7 +426,7 @@ export async function runSetup(options: SetupOptions = {}) {
     let toolchain = getToolchainForLang(langId, config);
     if (langId === 'cpp' || langId === 'c') {
       const currentId = toolchain?.id || 'gcc';
-      const choice = options.yes ? currentId : assertNotCancelled(
+      const choice = yes ? currentId : assertNotCancelled(
         await p.select({
           message: t('selectCompiler' as any, displayLang, langId),
           options: [
@@ -437,7 +439,7 @@ export async function runSetup(options: SetupOptions = {}) {
       toolchain = toolchainDefinitions[choice];
     } else if (langId === 'python') {
       const currentId = toolchain?.id || 'python';
-      const choice = options.yes ? currentId : assertNotCancelled(
+      const choice = yes ? currentId : assertNotCancelled(
         await p.select({
           message: t('selectRuntime' as any, displayLang, langId),
           options: [
@@ -467,7 +469,7 @@ export async function runSetup(options: SetupOptions = {}) {
     const status = localVer ? compareVersions(localVer, target.version) : 'mismatch';
     
     if (status === 'match') {
-      if (options.yes) {
+      if (yes) {
         p.log.info(`[${langId}] Already matches AtCoder version: ${localVer}. Skipping setup.`);
         continue;
       }
@@ -492,7 +494,7 @@ export async function runSetup(options: SetupOptions = {}) {
     if (plans.length === 1) {
       selectedPlan = plans[0];
     } else {
-      if (options.yes) {
+      if (yes) {
         selectedPlan = plans[0];
       } else {
         const choices = plans.map((p, idx) => ({
@@ -611,7 +613,7 @@ export async function runSetup(options: SetupOptions = {}) {
     return;
   }
 
-  const proceed = options.yes ? true : assertNotCancelled(
+  const proceed = yes ? true : assertNotCancelled(
     await p.confirm({
       message: t('setupProceedConfirm' as any, displayLang),
       initialValue: !requiresSudo
@@ -636,12 +638,12 @@ export async function runSetup(options: SetupOptions = {}) {
       appendToInstallLog(langId, step.command, res.success, res.output);
       
       let failed = !res.success;
-      if (failed && options.yes) {
+      if (failed && yes) {
         p.log.error(t('setupCommandFailed' as any, displayLang, step.command));
         anyFailure = true;
       }
 
-      while (failed && !options.yes) {
+      while (failed && !yes) {
         p.log.error(t('setupCommandFailed' as any, displayLang, step.command));
         
         const action = await p.select({
@@ -673,7 +675,7 @@ export async function runSetup(options: SetupOptions = {}) {
       
       if (anyFailure) {
         p.cancel(t('setupAbortedHalfway' as any, displayLang));
-        process.exit(options.yes ? 1 : 0);
+        process.exit(yes ? 1 : 0);
       }
     }
     
@@ -683,12 +685,12 @@ export async function runSetup(options: SetupOptions = {}) {
   }
 
   if (!anyFailure && settingsUpdates.length > 0) {
-    const applyConfigVal = options.yes ? true : await p.confirm({
+    const applyConfigVal = yes ? true : await p.confirm({
       message: t('setupApplyConfigConfirm' as any, displayLang),
       initialValue: true
     });
 
-    if (!options.yes && p.isCancel(applyConfigVal)) {
+    if (!yes && p.isCancel(applyConfigVal)) {
       if (executedAnyCommand) {
         p.cancel(t('setupCancelledSettingsNotApplied' as any, displayLang));
       } else {

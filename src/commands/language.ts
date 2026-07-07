@@ -2,19 +2,22 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { findWorkspaceRoot } from '../workspace/finder';
 import { loadConfig, saveConfig } from '../config';
-import { getLanguage, t } from '../utils/i18n';
+import { getLocale, t } from '../utils/i18n';
 import { addLanguage } from '../workspace/initializer';
 import { getLanguagePresets } from '../workspace/presets';
 import { AtcError } from '../utils/errors';
 
 export async function handleLang(langName: string | undefined) {
   const workspaceRoot = findWorkspaceRoot();
-  const lang = getLanguage(workspaceRoot);
+  const locale = getLocale(workspaceRoot);
 
   let cleanLang = langName;
   if (!cleanLang) {
+    if (!process.stdout.isTTY) {
+      throw new AtcError('Non-interactive environment detected. Please specify the language name as an argument.');
+    }
     const choice = await p.select({
-      message: t('langSelectMessage', lang),
+      message: t('langSelectMessage', locale),
       options: [
         { value: 'en', label: 'English' },
         { value: 'ja', label: '日本語' }
@@ -22,7 +25,7 @@ export async function handleLang(langName: string | undefined) {
     });
 
     if (p.isCancel(choice)) {
-      p.cancel(t('langCancelled', lang));
+      p.cancel(t('langCancelled', locale));
       process.exit(0);
     }
     cleanLang = choice as string;
@@ -31,7 +34,7 @@ export async function handleLang(langName: string | undefined) {
   cleanLang = cleanLang.trim().toLowerCase();
 
   if (cleanLang !== 'en' && cleanLang !== 'ja') {
-    p.log.error(pc.red(t('langInvalid', lang)));
+    p.log.error(pc.red(t('langInvalid', locale)));
     process.exit(1);
   }
 
@@ -44,40 +47,43 @@ export async function handleLang(langName: string | undefined) {
 
 export async function handleAddLang(langName: string | undefined) {
   const root = findWorkspaceRoot();
-  const lang = getLanguage(root);
+  const locale = getLocale(root);
   const config = loadConfig(root);
 
   let targetLang = langName;
   const presets = getLanguagePresets();
 
   if (!targetLang) {
+    if (!process.stdout.isTTY) {
+      throw new AtcError('Non-interactive environment detected. Please specify the programming language name as an argument.');
+    }
     const availablePresets = Object.keys(presets).filter(
       (key) => !config.languages[key]
     );
 
     const options = [
       ...availablePresets.map((key) => ({ value: key, label: key })),
-      { value: 'other', label: t('addLangSelectOther', lang) }
+      { value: 'other', label: t('addLangSelectOther', locale) }
     ];
 
     const selected = await p.select({
-      message: t('addLangSelectName', lang),
+      message: t('addLangSelectName', locale),
       options
     }) as string;
 
     if (p.isCancel(selected)) {
-      p.cancel(t('addLangCancelled', lang));
+      p.cancel(t('addLangCancelled', locale));
       process.exit(0);
     }
 
     if (selected === 'other') {
       targetLang = await p.text({
-        message: t('addLangEnterName', lang),
-        validate: (val) => (!val.trim() ? t('addLangNameNotEmpty', lang) : undefined)
+        message: t('addLangEnterName', locale),
+        validate: (val) => (!val.trim() ? t('addLangNameNotEmpty', locale) : undefined)
       }) as string;
 
       if (p.isCancel(targetLang)) {
-        p.cancel(t('addLangCancelled', lang));
+        p.cancel(t('addLangCancelled', locale));
         process.exit(0);
       }
     } else {
@@ -88,7 +94,7 @@ export async function handleAddLang(langName: string | undefined) {
   targetLang = targetLang.trim().toLowerCase();
 
   if (config.languages[targetLang]) {
-    throw new AtcError(t('addLangAlreadyExists', lang, targetLang));
+    throw new AtcError(t('addLangAlreadyExists', locale, targetLang));
   }
 
   const preset = presets[targetLang];
@@ -103,35 +109,38 @@ export async function handleAddLang(langName: string | undefined) {
     run = preset.config.run;
     template = preset.template;
   } else {
+    if (!process.stdout.isTTY) {
+      throw new AtcError('Non-interactive environment detected. Prompt inputs cannot be requested.');
+    }
     const extInput = await p.text({
-      message: t('addLangEnterExtension', lang, targetLang),
+      message: t('addLangEnterExtension', locale, targetLang),
       placeholder: targetLang,
-      validate: (val) => (!val.trim() ? t('addLangExtNotEmpty', lang) : undefined)
+      validate: (val) => (!val.trim() ? t('addLangExtNotEmpty', locale) : undefined)
     }) as string;
 
     if (p.isCancel(extInput)) {
-      p.cancel(t('addLangCancelled', lang));
+      p.cancel(t('addLangCancelled', locale));
       process.exit(0);
     }
 
     const buildInput = await p.text({
-      message: t('addLangEnterBuildCmd', lang),
+      message: t('addLangEnterBuildCmd', locale),
       placeholder: 'e.g. g++ -O2 main.cpp (leave empty if not needed)'
     }) as string;
 
     if (p.isCancel(buildInput)) {
-      p.cancel(t('addLangCancelled', lang));
+      p.cancel(t('addLangCancelled', locale));
       process.exit(0);
     }
 
     const runInput = await p.text({
-      message: t('addLangEnterRunCmd', lang),
+      message: t('addLangEnterRunCmd', locale),
       placeholder: `e.g. python3 main.py or ./a.out`,
-      validate: (val) => (!val.trim() ? t('addLangRunCmdNotEmpty', lang) : undefined)
+      validate: (val) => (!val.trim() ? t('addLangRunCmdNotEmpty', locale) : undefined)
     }) as string;
 
     if (p.isCancel(runInput)) {
-      p.cancel(t('addLangCancelled', lang));
+      p.cancel(t('addLangCancelled', locale));
       process.exit(0);
     }
 
@@ -142,7 +151,7 @@ export async function handleAddLang(langName: string | undefined) {
   }
 
   const s = p.spinner();
-  s.start(t('addLangSpinner', lang));
+  s.start(t('addLangSpinner', locale));
 
   try {
     addLanguage(root, targetLang, {
@@ -156,16 +165,19 @@ export async function handleAddLang(langName: string | undefined) {
     throw e;
   }
 
-  s.stop(t('addLangSuccess', lang, targetLang));
+  s.stop(t('addLangSuccess', locale, targetLang));
 }
 
 export async function handleDefaultLang(langName: string | undefined) {
   const root = findWorkspaceRoot();
-  const lang = getLanguage(root);
+  const locale = getLocale(root);
   const config = loadConfig(root);
 
   let targetLang = langName;
   if (!targetLang) {
+    if (!process.stdout.isTTY) {
+      throw new AtcError('Non-interactive environment detected. Please specify the default language name as an argument.');
+    }
     const configuredLangs = Object.keys(config.languages);
     if (configuredLangs.length === 0) {
       p.log.error(pc.red('No languages configured in this workspace. Please run "atc init" or "atc add-lang".'));
@@ -173,12 +185,12 @@ export async function handleDefaultLang(langName: string | undefined) {
     }
 
     const choice = await p.select({
-      message: t('defaultLangSelectMessage', lang),
+      message: t('defaultLangSelectMessage', locale),
       options: configuredLangs.map((l) => ({ value: l, label: l }))
     });
 
     if (p.isCancel(choice)) {
-      p.cancel(t('defaultLangCancelled', lang));
+      p.cancel(t('defaultLangCancelled', locale));
       process.exit(0);
     }
 
@@ -188,12 +200,12 @@ export async function handleDefaultLang(langName: string | undefined) {
   targetLang = targetLang.trim().toLowerCase();
 
   if (!config.languages[targetLang]) {
-    p.log.error(pc.red(t('defaultLangNotConfigured', lang, targetLang)));
+    p.log.error(pc.red(t('defaultLangNotConfigured', locale, targetLang)));
     process.exit(1);
   }
 
   config.defaultLanguage = targetLang;
   saveConfig(root, config);
 
-  p.log.success(t('defaultLangSuccess', lang, targetLang));
+  p.log.success(t('defaultLangSuccess', locale, targetLang));
 }

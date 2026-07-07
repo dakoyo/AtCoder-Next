@@ -2,13 +2,13 @@ import pc from 'picocolors';
 import { loadConfig } from '../config';
 import { findWorkspaceRoot } from '../workspace/finder';
 
-export type Language = 'en' | 'ja';
+export type Locale = 'en' | 'ja';
 
 /**
- * Detects the system language.
+ * Detects the system locale.
  * Default is English. If Japanese is detected in environment variables, returns 'ja'.
  */
-export function getSystemLanguage(): Language {
+export function getSystemLocale(): Locale {
   const envs = [
     process.env.LANG,
     process.env.LANGUAGE,
@@ -24,10 +24,10 @@ export function getSystemLanguage(): Language {
 }
 
 /**
- * Gets the current active language.
- * Looks up the workspace config first, then falls back to system language.
+ * Gets the current active locale.
+ * Looks up the workspace config first, then falls back to system locale.
  */
-export function getLanguage(workspaceRoot?: string): Language {
+export function getLocale(workspaceRoot?: string): Locale {
   let root = workspaceRoot;
   if (!root) {
     try {
@@ -48,7 +48,7 @@ export function getLanguage(workspaceRoot?: string): Language {
     }
   }
 
-  return getSystemLanguage();
+  return getSystemLocale();
 }
 
 // Translations dictionary
@@ -799,12 +799,23 @@ export const MESSAGES = {
 /**
  * Translates a key into the active language.
  */
-export const t = (key: keyof typeof MESSAGES, lang: Language, ...args: any[]): string => {
+export const t = (key: keyof typeof MESSAGES, locale: Locale, ...args: any[]): string => {
   const item = MESSAGES[key];
   if (!item) return String(key);
-  const msg = (item as any)[lang] || (item as any)['en'];
+  const msg = (item as any)[locale] || (item as any)['en'];
   if (typeof msg === 'function') {
     return msg(...args);
   }
   return msg;
+};
+
+export const h = (key: keyof typeof MESSAGES): string => {
+  const item = MESSAGES[key];
+  if (!item) return String(key);
+  const en = (item as any)['en'] || '';
+  const ja = (item as any)['ja'] || '';
+  if (typeof en === 'function') {
+    return en('(args)');
+  }
+  return `${en} | ${ja}`;
 };

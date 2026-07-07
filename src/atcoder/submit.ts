@@ -5,7 +5,7 @@ import { createAtCoderClient } from './client';
 import { loadConfig } from '../config';
 import { detectCodeFile } from '../test-runner/runner';
 import { AtcError } from '../utils/errors';
-import { getLanguage, t } from '../utils/i18n';
+import { getLocale, t } from '../utils/i18n';
 
 export interface SubmissionDetails {
   submissionId: string;
@@ -24,7 +24,7 @@ export async function submitTask(
   fileArg?: string
 ): Promise<SubmissionDetails> {
   const config = loadConfig(workspaceRoot);
-  const lang = getLanguage(workspaceRoot);
+  const locale = getLocale(workspaceRoot);
   const contestParentDir = config.contestDir ? path.join(workspaceRoot, config.contestDir) : workspaceRoot;
   const taskDir = path.join(contestParentDir, contestId, taskLabel);
 
@@ -74,9 +74,9 @@ export async function submitTask(
 
   if (selectElement.length === 0) {
     if ($('input[name="username"]').length > 0 || $('input[name="password"]').length > 0 || submitPageHtml.includes('/login')) {
-      throw new AtcError(t('submitSessionExpired', lang));
+      throw new AtcError(t('submitSessionExpired', locale));
     }
-    throw new AtcError(t('submitLangSelectNotFound', lang));
+    throw new AtcError(t('submitLangSelectNotFound', locale));
   }
 
   const options: { id: string; name: string }[] = [];
@@ -168,9 +168,9 @@ export async function submitTask(
       let alertText = $post('.alert-danger, .alert-warning').text().trim();
       if (!alertText) {
         if ($post('.cf-challenge').length > 0) {
-          throw new AtcError(t('submitTurnstileDetected', lang));
+          throw new AtcError(t('submitTurnstileDetected', locale));
         }
-        throw new AtcError(t('submitRejected', lang));
+        throw new AtcError(t('submitRejected', locale));
       }
       alertText = alertText.replace(/^×\s*/, '').trim();
       throw new AtcError(alertText);
