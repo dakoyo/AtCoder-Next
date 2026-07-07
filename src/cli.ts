@@ -426,11 +426,27 @@ program
     })
   );
 
+function inferContestIdFromCwd(cwd: string, workspaceRoot: string, contestDir: string): string | null {
+  const resolvedContestDir = contestDir ? path.resolve(workspaceRoot, contestDir) : workspaceRoot;
+  const relative = path.relative(resolvedContestDir, cwd);
+  if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+    const parts = relative.replace(/\\/g, '/').split('/');
+    if (parts.length >= 1 && parts.length <= 3 && parts[0] !== '') {
+      const ignoredDirs = ['src', 'dist', 'node_modules', '.git', '.github', 'test', 'docs', 'tests'];
+      if (!ignoredDirs.includes(parts[0].toLowerCase())) {
+        return parts[0];
+      }
+    }
+  }
+  return null;
+}
+
 function resolveArgs(
   workspaceRoot: string,
   arg1: string | undefined,
   arg2: string | undefined,
-  arg3: string | undefined
+  arg3: string | undefined,
+  options?: { allowNonExistent?: boolean }
 ) {
   const cwd = process.cwd();
   const config = loadConfig(workspaceRoot);
@@ -438,6 +454,8 @@ function resolveArgs(
 
   let resolvedTaskDir = '';
   let resolvedFile: string | undefined;
+  let inferredContestId: string | undefined;
+  let inferredTaskLabel: string | undefined;
 
   // Helper function to check if relative path parts exist in cwd, workspaceRoot or contestDir
   function checkPath(relativeParts: string[]): { isFile: boolean; isDir: boolean; path: string } | null {
@@ -465,6 +483,11 @@ function resolveArgs(
     if (checkDir && checkDir.isDir) {
       resolvedTaskDir = checkDir.path;
       resolvedFile = arg3;
+    } else if (options?.allowNonExistent) {
+      inferredContestId = arg1;
+      inferredTaskLabel = arg2;
+      resolvedFile = arg3;
+      resolvedTaskDir = path.resolve(workspaceRoot, contestDir, arg1, arg2);
     }
   }
 
@@ -478,6 +501,11 @@ function resolveArgs(
       if (checkArg1 && checkArg1.isDir) {
         resolvedTaskDir = checkArg1.path;
         resolvedFile = arg2;
+      } else if (options?.allowNonExistent) {
+        inferredContestId = arg1;
+        inferredTaskLabel = arg2;
+        resolvedFile = undefined;
+        resolvedTaskDir = path.resolve(workspaceRoot, contestDir, arg1, arg2);
       }
     }
   }
@@ -493,8 +521,33 @@ function resolveArgs(
         resolvedFile = undefined;
       }
     } else {
-      resolvedTaskDir = resolveTaskDirectory(workspaceRoot, arg1);
-      resolvedFile = undefined;
+      if (options?.allowNonExistent) {
+        const parts = arg1.replace(/\\/g, '/').split('/');
+        if (parts.length >= 2) {
+          const taskLabelPart = parts.pop()!;
+          const contestIdPart = parts.pop()!;
+          inferredContestId = contestIdPart;
+          inferredTaskLabel = taskLabelPart;
+          resolvedFile = undefined;
+          resolvedTaskDir = path.resolve(workspaceRoot, contestDir, contestIdPart, taskLabelPart);
+        } else {
+          const cwdContestId = inferContestIdFromCwd(cwd, workspaceRoot, contestDir);
+          if (cwdContestId) {
+            inferredContestId = cwdContestId;
+            inferredTaskLabel = arg1;
+            resolvedFile = undefined;
+            resolvedTaskDir = path.resolve(workspaceRoot, contestDir, cwdContestId, arg1);
+          } else {
+            inferredContestId = arg1;
+            inferredTaskLabel = '';
+            resolvedFile = undefined;
+            resolvedTaskDir = path.resolve(workspaceRoot, contestDir, arg1);
+          }
+        }
+      } else {
+        resolvedTaskDir = resolveTaskDirectory(workspaceRoot, arg1);
+        resolvedFile = undefined;
+      }
     }
   }
 
@@ -503,8 +556,8 @@ function resolveArgs(
     resolvedFile = undefined;
   }
 
-  const taskLabel = path.basename(resolvedTaskDir);
-  const contestId = path.basename(path.dirname(resolvedTaskDir));
+  const taskLabel = inferredTaskLabel !== undefined ? inferredTaskLabel : path.basename(resolvedTaskDir);
+  const contestId = inferredContestId !== undefined ? inferredContestId : path.basename(path.dirname(resolvedTaskDir));
 
   return { resolvedTaskDir, resolvedFile, taskLabel, contestId };
 }
@@ -515,22 +568,28 @@ program
   .action(
     handleAction(async (arg1: string | undefined, arg2: string | undefined, arg3: string | undefined) => {
       const workspaceRoot = findWorkspaceRoot();
-      const { taskLabel, contestId } = resolveArgs(workspaceRoot, arg1, arg2, arg3);
+      const { taskLabel, contestId } = resolveArgs(workspaceRoot, arg1, arg2, arg3, { allowNonExistent: true });
 
       const s = p.spinner();
       s.start(t('openRetrievingUrl', lang));
       
       try {
         const tasks = await fetchContestTasks(workspaceRoot, contestId);
-        const taskInfo = tasks.find(t => t.label.toLowerCase() === taskLabel.toLowerCase());
         
-        if (taskInfo) {
-          const url = `https://atcoder.jp/contests/${contestId}/tasks/${taskInfo.id}`;
+        if (taskLabel) {
+          const taskInfo = tasks.find(t => t.label.toLowerCase() === taskLabel.toLowerCase());
+          if (taskInfo) {
+            const url = `https://atcoder.jp/contests/${contestId}/tasks/${taskInfo.id}`;
+            s.stop(t('openSuccess', lang, url));
+            openUrl(url);
+          } else {
+            s.stop(t('openTaskNotFound', lang, taskLabel, contestId));
+            process.exit(1);
+          }
+        } else {
+          const url = `https://atcoder.jp/contests/${contestId}`;
           s.stop(t('openSuccess', lang, url));
           openUrl(url);
-        } else {
-          s.stop(t('openTaskNotFound', lang, taskLabel, contestId));
-          process.exit(1);
         }
       } catch (err: any) {
         s.stop(t('openFailed', lang, err.message));
