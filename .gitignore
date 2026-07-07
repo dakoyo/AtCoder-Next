@@ -3,6 +3,7 @@ dist
 node_modules
 *.tgz
 logs
+notes
 
 # AtCoder problem statements
 problem.md

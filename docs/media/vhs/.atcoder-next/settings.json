@@ -13,7 +13,7 @@
   },
   "testDirName": "tests",
   "contestDir": "",
-  "lang": "ja",
+  "lang": "en",
   "extractProblemStatement": false,
-  "problemLang": "ja"
+  "problemLang": "en"
 }

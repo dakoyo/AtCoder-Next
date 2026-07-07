@@ -176,12 +176,15 @@ async function verifyCookieValue(revelSession: string): Promise<boolean> {
 /**
  * Connects to the browser via CDP on the given port and waits for the REVEL_SESSION cookie.
  */
-export async function waitForLoginCookie(port: number, timeoutMs = 300000): Promise<string> {
+export async function waitForLoginCookie(port: number, childProc?: ChildProcess, timeoutMs = 300000): Promise<string> {
   const startTime = Date.now();
   let browser: any;
 
   // Try to connect to the browser CDP port (retry for up to 10 seconds)
   for (let i = 0; i < 30; i++) {
+    if (childProc && childProc.exitCode !== null) {
+      throw new Error(`Browser process exited unexpectedly with code ${childProc.exitCode}.`);
+    }
     try {
       browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
       break;
@@ -199,6 +202,9 @@ export async function waitForLoginCookie(port: number, timeoutMs = 300000): Prom
 
   try {
     while (Date.now() - startTime < timeoutMs) {
+      if (childProc && childProc.exitCode !== null) {
+        throw new Error(`Browser process exited unexpectedly with code ${childProc.exitCode}.`);
+      }
       if (!browser.isConnected()) {
         throw new Error('Browser connection was closed.');
       }
