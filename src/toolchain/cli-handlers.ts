@@ -548,7 +548,7 @@ export async function runSetup(options: SetupOptions = {}) {
         newRun = newRun.replace(/\bpython3?\b/g, 'pypy3');
       }
 
-      if (selectedPlan.strategy === 'package-manager') {
+      if (selectedPlan.strategy === 'package-manager' && os !== 'windows') {
         const major = target.version.split('.')[0];
         if (toolchain.id === 'gcc') {
           newBuild = newBuild
