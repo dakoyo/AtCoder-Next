@@ -9,11 +9,31 @@ const { mockGet } = vi.hoisted(() => {
   return { mockGet: vi.fn() };
 });
 
-vi.mock('./client', () => {
+vi.mock('axios', () => {
+  const mockInstance = {
+    get: mockGet,
+    interceptors: {
+      request: {
+        use: vi.fn(),
+        eject: vi.fn()
+      },
+      response: {
+        use: vi.fn(),
+        eject: vi.fn()
+      }
+    }
+  };
   return {
-    createAtCoderClient: vi.fn().mockReturnValue({
+    default: {
+      create: vi.fn(() => mockInstance),
       get: mockGet
-    })
+    }
+  };
+});
+
+vi.mock('../utils/rate-limiter', () => {
+  return {
+    waitRateLimit: vi.fn()
   };
 });
 
