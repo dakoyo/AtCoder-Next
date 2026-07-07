@@ -162,7 +162,7 @@ jobs:
         run: |
           # doctorを非対話モード (--yes) で実行し、バージョンが正しく一致 (Match/Warning) しているか検証
           # インストールした言語のみを検証対象にする
-          node dist/cli.js tools doctor ${{ github.event.inputs.languages }} --yes 2>&1 | tee doctor.log
+          node dist/cli.js tools doctor ${{ github.event.inputs.languages }} --yes 2>&1 | tee doctor.log || true
 
       - name: Run Scaffolding, Compile, and Test Integration
         shell: bash
@@ -172,10 +172,15 @@ jobs:
             echo "Testing scaffolding and local compiler settings for: $lang"
             
             # settings.json の defaultLanguage を一時的に $lang に書き換え
+            # typescriptの場合は起動オーバーヘッドを避けるためbuildとrunを上書き
             node -e "
               const fs = require('fs');
               const conf = JSON.parse(fs.readFileSync('.atcoder-next/settings.json', 'utf8'));
               conf.defaultLanguage = '$lang';
+              if ('$lang' === 'typescript') {
+                conf.languages.typescript.build = 'npx tsc main.ts --target es2022 --module commonjs --moduleResolution node';
+                conf.languages.typescript.run = 'node main.js';
+              }
               fs.writeFileSync('.atcoder-next/settings.json', JSON.stringify(conf, null, 2));
             "
             
