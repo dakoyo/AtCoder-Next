@@ -3,7 +3,8 @@ import pc from 'picocolors';
 import { findWorkspaceRoot } from '../workspace/finder';
 import { loadConfig, saveConfig } from '../config';
 import { getLanguage, t } from '../utils/i18n';
-import { LANGUAGE_PRESETS, addLanguage } from '../workspace/initializer';
+import { addLanguage } from '../workspace/initializer';
+import { getLanguagePresets } from '../workspace/presets';
 import { AtcError } from '../utils/errors';
 
 export async function handleLang(langName: string | undefined) {
@@ -47,8 +48,10 @@ export async function handleAddLang(langName: string | undefined) {
   const config = loadConfig(root);
 
   let targetLang = langName;
+  const presets = getLanguagePresets();
+
   if (!targetLang) {
-    const availablePresets = Object.keys(LANGUAGE_PRESETS).filter(
+    const availablePresets = Object.keys(presets).filter(
       (key) => !config.languages[key]
     );
 
@@ -88,7 +91,7 @@ export async function handleAddLang(langName: string | undefined) {
     throw new AtcError(t('addLangAlreadyExists', lang, targetLang));
   }
 
-  const preset = LANGUAGE_PRESETS[targetLang];
+  const preset = presets[targetLang];
   let extension = '';
   let build = '';
   let run = '';

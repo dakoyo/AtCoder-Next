@@ -134,11 +134,21 @@ atc tools setup
 ```
 
 > [!NOTE]
-> **Supported OS and Limitations**
+> **Supported OS and Package Managers for Auto-Installation**
+>
+> The `doctor` / `setup` commands attempt to perform automatic installations using the following package managers depending on the system environment:
+>
+> | OS | Package Manager | Dedicated Version Manager | Target Toolchains |
+> | :--- | :--- | :--- | :--- |
+> | **macOS** | Homebrew (`brew`) | `rustup`, `pyenv`, `nvm` | gcc, clang, python, node, typescript, rust |
+> | **Linux (Ubuntu/Debian)** | `apt` (with PPA) | `rustup`, `pyenv`, `nvm` | gcc, clang, python, node, typescript, rust |
+> | **Linux (Fedora/RHEL)** | `dnf` | `rustup`, `pyenv`, `nvm` | gcc, python, node, typescript, rust |
+> | **Linux (Arch Linux)** | `pacman` | `rustup`, `pyenv`, `nvm` | gcc, python, node, typescript, rust |
+> | **Windows** | `winget`, `scoop` | `rustup`, `nvm` | gcc (via MSYS2), python, node, typescript, rust |
+>
+> * **Security Note**: When performing system-wide operations (e.g. `apt`), the tool may request temporary elevation of privileges using `sudo`.
 > * The `doctor` / `setup` features are tested on GitHub Actions CI environments (Ubuntu, macOS, Windows). However, unexpected behaviors may occur depending on your individual local environment (security restrictions, PATH configurations, conflicts between multiple package managers, etc.).
 > * If the automatic installation fails, check the error messages or the logs in `~/.atcoder-next/install.log`, manually install the required tools, and update the build/execution commands in `.atcoder-next/settings.json`.
-> 
-> 
 
 ### Source Code Bundler (`bundle`)
 

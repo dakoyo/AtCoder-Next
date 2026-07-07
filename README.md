@@ -121,7 +121,19 @@ atc tools setup
 ```
 
 > [!NOTE]
-> **対応OSと制限事項**
+> **対応OSと自動インストールに使用するパッケージマネージャ**
+>
+> `doctor` / `setup` は環境に応じて以下のツールを使用して自動インストールを試みます。
+>
+> | OS | パッケージマネージャ | 専用バージョンマネージャ | 対象ツールチェイン |
+> | :--- | :--- | :--- | :--- |
+> | **macOS** | Homebrew (`brew`) | `rustup`, `pyenv`, `nvm` | gcc, clang, python, node, typescript, rust |
+> | **Linux (Ubuntu/Debian)** | `apt` (PPA追加を含む) | `rustup`, `pyenv`, `nvm` | gcc, clang, python, node, typescript, rust |
+> | **Linux (Fedora/RHEL)** | `dnf` | `rustup`, `pyenv`, `nvm` | gcc, python, node, typescript, rust |
+> | **Linux (Arch Linux)** | `pacman` | `rustup`, `pyenv`, `nvm` | gcc, python, node, typescript, rust |
+> | **Windows** | `winget`, `scoop` | `rustup`, `nvm` | gcc (via MSYS2), python, node, typescript, rust |
+>
+> * **安全性について**: パッケージマネージャでシステム全体に影響する操作（`apt` など）を行う際は、一時的に `sudo` による管理者特権の昇格を求めることがあります。
 > * `doctor` / `setup` 機能は GitHub Actions による CI 環境（Ubuntu、macOS、Windows）でテストされていますが、ローカル環境ごとの個別の設定（セキュリティ制限、パス設定、複数パッケージマネージャの競合など）によっては、予期しない挙動をする可能性があります。
 > * 自動インストールがうまく動作しない場合は、エラーメッセージや `~/.atcoder-next/install.log` に出力されるログを確認の上、手動でツールを導入して `.atcoder-next/settings.json` のビルド/実行コマンドを変更してください。
 

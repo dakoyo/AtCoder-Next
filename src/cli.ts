@@ -107,13 +107,18 @@ program
   .description(t('descLang', lang))
   .action(handleAction(handleLang));
 
-program
-  .command('add-lang [langName]')
+const languageCmd = program
+  .command('language')
+  .alias('l')
+  .description('Manage programming language configurations for the workspace');
+
+languageCmd
+  .command('add [langName]')
   .description(t('descAddLang', lang))
   .action(handleAction(handleAddLang));
 
-program
-  .command('default-lang [langName]')
+languageCmd
+  .command('default [langName]')
   .description(t('descDefaultLang', lang))
   .action(handleAction(handleDefaultLang));
 

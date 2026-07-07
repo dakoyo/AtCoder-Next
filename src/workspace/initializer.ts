@@ -3,137 +3,7 @@ import * as path from 'path';
 import { saveConfig, Config, LanguageConfig, loadConfig, getConfigPath } from '../config';
 import { AtcError } from '../utils/errors';
 
-export const DEFAULT_CPP_TEMPLATE = `#include <bits/stdc++.h>
-
-using namespace std;
-
-int main() {
-    // Solve the problem here
-    return 0;
-}
-`;
-
-export const DEFAULT_PYTHON_TEMPLATE = `import sys
-
-def main():
-    # Solve the problem here
-    pass
-
-if __name__ == '__main__':
-    main()
-`;
-
-export const DEFAULT_RUST_TEMPLATE = `fn main() {
-    // Solve the problem here
-}
-`;
-
-export const DEFAULT_TYPESCRIPT_TEMPLATE = `import * as fs from 'fs';
-
-function main() {
-    // Solve the problem here
-}
-
-main();
-`;
-
-export const DEFAULT_JAVASCRIPT_TEMPLATE = `const fs = require('fs');
-
-function main() {
-    // Solve the problem here
-}
-
-main();
-`;
-
-export const DEFAULT_C_TEMPLATE = `#include <stdio.h>
-
-int main() {
-    // Solve the problem here
-    return 0;
-}
-`;
-
-export const LANGUAGE_PRESETS: Record<string, { config: LanguageConfig; template: string; filename: string }> = {
-  cpp: {
-    config: {
-      extension: 'cpp',
-      templateDir: 'templates/cpp',
-      build: 'g++ -O2 -std=gnu++20 -o a.out main.cpp',
-      run: './a.out',
-      submitFile: 'main.cpp',
-      atcoderLanguage: '',
-      atcoderLanguageIdRegex: ''
-    },
-    template: DEFAULT_CPP_TEMPLATE,
-    filename: 'main.cpp'
-  },
-  python: {
-    config: {
-      extension: 'py',
-      templateDir: 'templates/python',
-      build: '',
-      run: 'python3 main.py',
-      submitFile: 'main.py',
-      atcoderLanguage: '',
-      atcoderLanguageIdRegex: ''
-    },
-    template: DEFAULT_PYTHON_TEMPLATE,
-    filename: 'main.py'
-  },
-  rust: {
-    config: {
-      extension: 'rs',
-      templateDir: 'templates/rust',
-      build: 'rustc -O -o a.out main.rs',
-      run: './a.out',
-      submitFile: 'main.rs',
-      atcoderLanguage: '',
-      atcoderLanguageIdRegex: ''
-    },
-    template: DEFAULT_RUST_TEMPLATE,
-    filename: 'main.rs'
-  },
-  typescript: {
-    config: {
-      extension: 'ts',
-      templateDir: 'templates/typescript',
-      build: '',
-      run: 'npx ts-node main.ts',
-      submitFile: 'main.ts',
-      atcoderLanguage: '',
-      atcoderLanguageIdRegex: ''
-    },
-    template: DEFAULT_TYPESCRIPT_TEMPLATE,
-    filename: 'main.ts'
-  },
-  javascript: {
-    config: {
-      extension: 'js',
-      templateDir: 'templates/javascript',
-      build: '',
-      run: 'node main.js',
-      submitFile: 'main.js',
-      atcoderLanguage: '',
-      atcoderLanguageIdRegex: ''
-    },
-    template: DEFAULT_JAVASCRIPT_TEMPLATE,
-    filename: 'main.js'
-  },
-  c: {
-    config: {
-      extension: 'c',
-      templateDir: 'templates/c',
-      build: 'gcc -O2 -std=c11 -o a.out main.c',
-      run: './a.out',
-      submitFile: 'main.c',
-      atcoderLanguage: '',
-      atcoderLanguageIdRegex: ''
-    },
-    template: DEFAULT_C_TEMPLATE,
-    filename: 'main.c'
-  }
-};
+import { getLanguagePresets, saveLanguagePreset } from './presets';
 
 export interface InitOptions {
   defaultLanguage: string;
@@ -171,10 +41,12 @@ export function initWorkspace(
     fs.mkdirSync(atCoderCliDir, { recursive: true });
   }
 
+  const presets = getLanguagePresets();
+
   // Create default config if it doesn't exist
   const configPath = getConfigPath(targetDir);
   if (!fs.existsSync(configPath)) {
-    const preset = LANGUAGE_PRESETS[defaultLanguage] || {
+    const preset = presets[defaultLanguage] || {
       config: {
         extension: defaultLanguage,
         templateDir: `templates/${defaultLanguage}`,
@@ -208,7 +80,7 @@ export function initWorkspace(
       config.defaultLanguage = cleanLang;
     }
     if (!config.languages[cleanLang]) {
-      const preset = LANGUAGE_PRESETS[cleanLang] || {
+      const preset = presets[cleanLang] || {
         config: {
           extension: cleanLang,
           templateDir: `templates/${cleanLang}`,
@@ -225,7 +97,7 @@ export function initWorkspace(
 
   // Create default templates
   const templatesDir = path.join(atCoderCliDir, 'templates');
-  const preset = LANGUAGE_PRESETS[defaultLanguage] || {
+  const preset = presets[defaultLanguage] || {
     config: {
       extension: defaultLanguage,
       templateDir: `templates/${defaultLanguage}`,
@@ -278,6 +150,7 @@ export function addLanguage(
     build: string;
     run: string;
     template?: string;
+    submitFile?: string;
   }
 ): void {
   const config = loadConfig(workspaceRoot);
@@ -287,7 +160,8 @@ export function addLanguage(
     throw new AtcError(`Language "${cleanLang}" is already configured.`);
   }
 
-  const preset = LANGUAGE_PRESETS[cleanLang];
+  const presets = getLanguagePresets();
+  const preset = presets[cleanLang];
   const extension = options.extension || (preset ? preset.config.extension : cleanLang);
   const build = options.build !== undefined ? options.build : (preset ? preset.config.build : '');
   const run = options.run || (preset ? preset.config.run : '');
@@ -305,7 +179,7 @@ export function addLanguage(
     fs.writeFileSync(templateFile, template, 'utf8');
   }
 
-  const submitFile = preset ? preset.filename : `main.${extension}`;
+  const submitFile = options.submitFile || (preset ? (preset.config.submitFile || preset.filename) : `main.${extension}`);
 
   config.languages[cleanLang] = {
     extension,
@@ -316,6 +190,14 @@ export function addLanguage(
     atcoderLanguage: '',
     atcoderLanguageIdRegex: ''
   };
+
+  if (!preset) {
+    saveLanguagePreset(cleanLang, {
+      config: config.languages[cleanLang],
+      template,
+      filename
+    });
+  }
 
   saveConfig(workspaceRoot, config);
 }
