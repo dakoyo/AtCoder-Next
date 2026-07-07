@@ -307,9 +307,6 @@ function bundlePython(inputs: string[], resolvedOutputPath: string, workspaceRoo
 function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?: string, extraArgs: string[] = []): void {
   let outputContent = '';
 
-  const esbuildLibPath = require.resolve('esbuild');
-  const esbuildBinPath = path.resolve(path.dirname(esbuildLibPath), '../bin/esbuild');
-
   for (const input of inputs) {
     let absoluteInputPath = path.resolve(input);
     if (!fs.existsSync(absoluteInputPath)) {
@@ -337,41 +334,28 @@ function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?
       throw new AtcError(`Input file and output file cannot be the same: "${input}".`);
     }
 
-    let execCmd: string;
-    let args: string[];
+    try {
+      const minify = extraArgs.includes('--minify');
+      const hasSourcemap = extraArgs.some(arg => arg.startsWith('--sourcemap'));
 
-    if (process.platform === 'win32') {
-      execCmd = 'node';
-      args = [
-        esbuildBinPath,
-        absoluteInputPath,
-        '--bundle',
-        '--platform=node',
-        '--target=node20',
-        '--format=cjs',
-        ...extraArgs
-      ];
-    } else {
-      execCmd = esbuildBinPath;
-      args = [
-        absoluteInputPath,
-        '--bundle',
-        '--platform=node',
-        '--target=node20',
-        '--format=cjs',
-        ...extraArgs
-      ];
+      const result = esbuild.buildSync({
+        entryPoints: [absoluteInputPath],
+        bundle: true,
+        platform: 'node',
+        target: 'node20',
+        format: 'cjs',
+        minify,
+        sourcemap: hasSourcemap ? 'inline' : undefined,
+        write: false,
+        logLevel: 'silent'
+      });
+
+      if (result.outputFiles && result.outputFiles.length > 0) {
+        outputContent += result.outputFiles[0].text + '\n';
+      }
+    } catch (e: any) {
+      throw new AtcError(`Failed to bundle JS/TS file "${input}": ${e.message}`);
     }
-
-    const result = spawnSync(execCmd, args, {
-      encoding: 'utf8',
-    });
-
-    if (result.status !== 0) {
-      throw new AtcError(`Failed to bundle JS/TS file "${input}": ${result.stderr || result.error}`);
-    }
-
-    outputContent += result.stdout + '\n';
   }
 
   // Write the bundled content to output file

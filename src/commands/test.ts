@@ -1,5 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
+import * as path from 'path';
+import * as fs from 'fs';
 import { findWorkspaceRoot } from '../workspace/finder';
 import { getLanguage, t } from '../utils/i18n';
 import { resolveArgs } from './utils';
@@ -25,25 +27,56 @@ export async function handleTest(
 
   p.intro(pc.cyan(t('testIntro', lang, contestId, taskLabel)));
 
-  const s = p.spinner();
-  s.start(t('testRetrievingLimits', lang));
   let timeLimitMs = 2000;
-  
-  try {
-    const client = createAtCoderClient(workspaceRoot);
-    const tasks = await fetchContestTasks(workspaceRoot, contestId);
-    const taskInfo = tasks.find(t => t.label.toLowerCase() === taskLabel.toLowerCase());
-    
-    if (taskInfo) {
-      const res = await client.get(`/contests/${contestId}/tasks/${taskInfo.id}`);
-      const details = parseProblemPage(res.data);
-      timeLimitMs = details.timeLimitMs;
-      s.stop(t('testLoadedLimits', lang, timeLimitMs));
-    } else {
-      s.stop(t('testDefaultLimits', lang));
+  const metadataPath = path.join(workspaceRoot, '.atcoder-next', 'contest-metadata.json');
+  let loadedFromCache = false;
+
+  if (fs.existsSync(metadataPath)) {
+    try {
+      const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+      const taskKey = `${contestId}/${taskLabel}`.toLowerCase();
+      if (metadata.tasks && metadata.tasks[taskKey]) {
+        timeLimitMs = metadata.tasks[taskKey].timeLimitMs;
+        loadedFromCache = true;
+      }
+    } catch {}
+  }
+
+  if (!loadedFromCache) {
+    const s = p.spinner();
+    s.start(t('testRetrievingLimits', lang));
+    try {
+      const client = createAtCoderClient(workspaceRoot);
+      const tasks = await fetchContestTasks(workspaceRoot, contestId);
+      const taskInfo = tasks.find(t => t.label.toLowerCase() === taskLabel.toLowerCase());
+      
+      if (taskInfo) {
+        const res = await client.get(`/contests/${contestId}/tasks/${taskInfo.id}`);
+        const details = parseProblemPage(res.data);
+        timeLimitMs = details.timeLimitMs;
+        s.stop(t('testLoadedLimits', lang, timeLimitMs));
+        
+        let metadata: any = { tasks: {} };
+        if (fs.existsSync(metadataPath)) {
+          try {
+            metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+          } catch {}
+        }
+        if (!metadata.tasks) {
+          metadata.tasks = {};
+        }
+        const taskKey = `${contestId}/${taskLabel}`.toLowerCase();
+        metadata.tasks[taskKey] = {
+          timeLimitMs,
+          memoryLimitMb: details.memoryLimitBytes ? Math.round(details.memoryLimitBytes / (1024 * 1024)) : 1024
+        };
+        fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
+      } else {
+        s.stop(t('testDefaultLimits', lang));
+      }
+    } catch (err) {
+      s.stop(t('testDefaultLimitsError', lang));
     }
-  } catch (err) {
-    s.stop(t('testDefaultLimitsError', lang));
   }
 
   const testSpinner = p.spinner();

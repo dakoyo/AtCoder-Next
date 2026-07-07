@@ -1,5 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
+import * as path from 'path';
+import * as fs from 'fs';
 import { findWorkspaceRoot } from '../workspace/finder';
 import { getLanguage, t } from '../utils/i18n';
 import { resolveArgs } from './utils';
@@ -27,8 +29,6 @@ export async function handleSubmit(
 
   p.intro(pc.cyan(t('submitPreparing', lang, contestId, taskLabel)));
 
-  const s = p.spinner();
-  s.start(t('submitRetrievingLimits', lang));
   let timeLimitMs = 2000;
   let taskId = '';
   
@@ -41,13 +41,47 @@ export async function handleSubmit(
   }
   taskId = taskInfo.id;
 
-  try {
-    const res = await client.get(`/contests/${contestId}/tasks/${taskId}`);
-    const details = parseProblemPage(res.data);
-    timeLimitMs = details.timeLimitMs;
-    s.stop(t('testLoadedLimits', lang, timeLimitMs));
-  } catch (err) {
-    s.stop(t('testDefaultLimitsError', lang));
+  const metadataPath = path.join(workspaceRoot, '.atcoder-next', 'contest-metadata.json');
+  let loadedFromCache = false;
+
+  if (fs.existsSync(metadataPath)) {
+    try {
+      const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+      const taskKey = `${contestId}/${taskLabel}`.toLowerCase();
+      if (metadata.tasks && metadata.tasks[taskKey]) {
+        timeLimitMs = metadata.tasks[taskKey].timeLimitMs;
+        loadedFromCache = true;
+      }
+    } catch {}
+  }
+
+  if (!loadedFromCache) {
+    const s = p.spinner();
+    s.start(t('submitRetrievingLimits', lang));
+    try {
+      const res = await client.get(`/contests/${contestId}/tasks/${taskId}`);
+      const details = parseProblemPage(res.data);
+      timeLimitMs = details.timeLimitMs;
+      s.stop(t('testLoadedLimits', lang, timeLimitMs));
+      
+      let metadata: any = { tasks: {} };
+      if (fs.existsSync(metadataPath)) {
+        try {
+          metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+        } catch {}
+      }
+      if (!metadata.tasks) {
+        metadata.tasks = {};
+      }
+      const taskKey = `${contestId}/${taskLabel}`.toLowerCase();
+      metadata.tasks[taskKey] = {
+        timeLimitMs,
+        memoryLimitMb: details.memoryLimitBytes ? Math.round(details.memoryLimitBytes / (1024 * 1024)) : 1024
+      };
+      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
+    } catch (err) {
+      s.stop(t('testDefaultLimitsError', lang));
+    }
   }
 
   p.log.step(t('submitRunningTests', lang));
@@ -94,7 +128,8 @@ export async function handleSubmit(
   const pollSpinner = p.spinner();
   pollSpinner.start(t('submitWaitingJudge', lang));
   
-  const pollInterval = 2000;
+  let currentInterval = 2000;
+  let lastStatusStr = '';
   const timeout = 300000;
   const startTime = Date.now();
   let completed = false;
@@ -123,10 +158,18 @@ export async function handleSubmit(
         }
         break;
       }
+
+      if (status.status !== lastStatusStr) {
+        currentInterval = 2000;
+        lastStatusStr = status.status;
+      } else {
+        currentInterval = Math.min(currentInterval * 1.5, 10000);
+      }
     } catch (e: any) {
       pollSpinner.message(`Polling status... (network retry: ${e.message})`);
+      currentInterval = Math.min(currentInterval * 1.5, 10000);
     }
-    await new Promise(resolve => setTimeout(resolve, pollInterval));
+    await new Promise(resolve => setTimeout(resolve, currentInterval));
   }
 
   if (!completed) {

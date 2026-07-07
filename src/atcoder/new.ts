@@ -115,6 +115,26 @@ export async function setupTask(
     }
   }
 
+  // Save metadata to .atcoder-next/contest-metadata.json
+  const metadataPath = path.join(workspaceRoot, '.atcoder-next', 'contest-metadata.json');
+  let metadata: any = { tasks: {} };
+  if (fs.existsSync(metadataPath)) {
+    try {
+      metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+    } catch {}
+  }
+  if (!metadata.tasks) {
+    metadata.tasks = {};
+  }
+  const taskKey = `${contestId}/${task.label}`.toLowerCase();
+  metadata.tasks[taskKey] = {
+    timeLimitMs: problemDetails.timeLimitMs || 2000,
+    memoryLimitMb: problemDetails.memoryLimitBytes ? Math.round(problemDetails.memoryLimitBytes / (1024 * 1024)) : 1024
+  };
+  try {
+    fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
+  } catch {}
+
   return {
     contestId,
     taskLabel: task.label,
