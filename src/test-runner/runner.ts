@@ -133,12 +133,6 @@ export function detectCodeFile(
   
   const defLang = config.languages[config.defaultLanguage];
   if (defLang) {
-    if (defLang.submitFile) {
-      const submitFilePath = path.join(taskDir, defLang.submitFile);
-      if (fs.existsSync(submitFilePath) && fs.statSync(submitFilePath).isFile()) {
-        return { codeFile: defLang.submitFile, langKey: config.defaultLanguage, langConfig: defLang };
-      }
-    }
     const matchedFile = files.find(f => f.endsWith(`.${defLang.extension}`) && fs.statSync(path.join(taskDir, f)).isFile());
     if (matchedFile) {
       return { codeFile: matchedFile, langKey: config.defaultLanguage, langConfig: defLang };
@@ -147,12 +141,6 @@ export function detectCodeFile(
 
   for (const [key, langConfig] of Object.entries(config.languages)) {
     if (key === config.defaultLanguage) continue;
-    if (langConfig.submitFile) {
-      const submitFilePath = path.join(taskDir, langConfig.submitFile);
-      if (fs.existsSync(submitFilePath) && fs.statSync(submitFilePath).isFile()) {
-        return { codeFile: langConfig.submitFile, langKey: key, langConfig };
-      }
-    }
     const matchedFile = files.find(f => f.endsWith(`.${langConfig.extension}`) && fs.statSync(path.join(taskDir, f)).isFile());
     if (matchedFile) {
       return { codeFile: matchedFile, langKey: key, langConfig: langConfig };
@@ -160,6 +148,16 @@ export function detectCodeFile(
   }
 
   throw new AtcError(`No source files found in "${taskDir}" matching configured languages.`);
+}
+
+/**
+ * Resolves a placeholder format `{{file: defaultValue}}` using the actual filename.
+ */
+export function resolvePlaceholder(str: string, actualFile?: string): string {
+  if (!str) return '';
+  return str.replace(/\{\{\s*file:\s*([^}]+)\s*\}\}/g, (match, defaultVal) => {
+    return actualFile || defaultVal.trim();
+  });
 }
 
 /**
@@ -171,8 +169,8 @@ export function resolveCommands(
   actualFile: string,
   extension: string
 ): { build: string; run: string } {
-  let build = langConfig.build;
-  let run = langConfig.run;
+  let build = resolvePlaceholder(langConfig.build, actualFile);
+  let run = resolvePlaceholder(langConfig.run, actualFile);
 
   const wrapper = process.env.ATC_EXEC_WRAPPER;
   if (wrapper) {
@@ -201,7 +199,7 @@ export function runBuild(buildCommand: string, taskDir: string): Promise<{ code:
  * Parses a command line string into a command and an array of arguments,
  * respecting double and single quotes.
  */
-function parseCommandString(cmdStr: string): { command: string; args: string[] } {
+export function parseCommandString(cmdStr: string): { command: string; args: string[] } {
   const parts: string[] = [];
   let current = '';
   let inDoubleQuote = false;
@@ -241,7 +239,7 @@ function parseCommandString(cmdStr: string): { command: string; args: string[] }
  * Resolves relative command paths (e.g. ./a.out) to absolute paths relative to taskDir
  * to avoid OS path resolution overhead and potential spawn errors.
  */
-function resolveSpawnCommand(command: string, taskDir: string): string {
+export function resolveSpawnCommand(command: string, taskDir: string): string {
   if (command.startsWith('./') || command.startsWith('../') || command.includes('/') || command.includes('\\')) {
     return path.resolve(taskDir, command);
   }

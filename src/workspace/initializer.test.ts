@@ -224,7 +224,7 @@ describe('initializer', () => {
       const config = loadConfig(tempDir);
       expect(config.languages).toHaveProperty('python');
       expect(config.languages.python.extension).toBe('py');
-      expect(config.languages.python.run).toBe('python3 main.py');
+      expect(config.languages.python.run).toBe('python3 {{file: main.py}}');
 
       const templatePath = path.join(tempDir, '.atcoder-next', 'templates', 'python', 'main.py');
       expect(fs.existsSync(templatePath)).toBe(true);

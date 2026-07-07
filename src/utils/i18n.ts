@@ -84,6 +84,10 @@ export const MESSAGES = {
     en: 'Run local tests against downloaded sample cases',
     ja: 'ダウンロードしたサンプルケースに対してローカルテストを実行します'
   },
+  descPlay: {
+    en: 'Build and run solution interactively with standard input',
+    ja: 'ソリューションをビルド・実行し、標準入力をインタラクティブに入力します'
+  },
   descOpen: {
     en: 'Open the problem page in your default web browser',
     ja: 'デフォルトのウェブブラウザで問題ページを開きます'
@@ -340,6 +344,32 @@ export const MESSAGES = {
   newStatementWarningBody: {
     en: '• DO NOT feed the problem statement Markdown to Generative AI during a rated contest (violates rules).\n• DO NOT publish or share the extracted problem statement on the internet (e.g. public GitHub repos).',
     ja: '・コンテスト中に問題文のMarkdownを生成AIに読み込ませないでください（ルール違反となります）。\n・抽出した問題文をそのままインターネット（GitHubパブリックリポジトリ等）に公開・共有しないでください。'
+  },
+
+  // play
+  playIntro: {
+    en: (contestId: string, label: string) => `Playing solution for ${contestId}/${label}`,
+    ja: (contestId: string, label: string) => `実行中: ${contestId}/${label}`
+  },
+  playCompiling: {
+    en: 'Compiling...',
+    ja: 'コンパイル中...'
+  },
+  playCompilationFailed: {
+    en: 'Compilation failed',
+    ja: 'コンパイル失敗'
+  },
+  playCompiled: {
+    en: 'Compilation successful.',
+    ja: 'コンパイル成功。'
+  },
+  playRunningPrompt: {
+    en: 'Running solution. Enter input below (Ctrl+D to finish):',
+    ja: 'プログラムを実行しています。以下に入力してください (終了は Ctrl+D):'
+  },
+  playFinished: {
+    en: 'Process finished successfully.',
+    ja: '実行が正常に終了しました。'
   },
 
   // test

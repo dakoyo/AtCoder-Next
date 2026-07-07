@@ -17,6 +17,7 @@ import { handleWhoami } from './commands/whoami';
 import { handleNew } from './commands/new';
 import { handleOpen } from './commands/open';
 import { handleTest } from './commands/test';
+import { handlePlay } from './commands/play';
 import { handleSubmit } from './commands/submit';
 import { handleLang, handleAddLang, handleDefaultLang } from './commands/language';
 import { handleBundle } from './commands/tools';
@@ -105,6 +106,13 @@ program
   .description(h('descTest'))
   .option('-f, --file <file>', 'Specify the source file to test')
   .action(handleAction(handleTest));
+
+program
+  .command('play [contestIdOrTask] [taskLabel]')
+  .alias('p')
+  .description(h('descPlay'))
+  .option('-f, --file <file>', 'Specify the source file to run')
+  .action(handleAction(handlePlay));
 
 program
   .command('submit [contestIdOrTask] [taskLabel]')

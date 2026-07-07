@@ -51,7 +51,8 @@ export function initWorkspace(
         extension: defaultLanguage,
         templateDir: `templates/${defaultLanguage}`,
         build: '',
-        run: ''
+        run: '',
+        submitFile: `{{file: main.${defaultLanguage}}}`
       },
       template: '',
       filename: `main.${defaultLanguage}`
@@ -85,7 +86,8 @@ export function initWorkspace(
           extension: cleanLang,
           templateDir: `templates/${cleanLang}`,
           build: '',
-          run: ''
+          run: '',
+          submitFile: `{{file: main.${cleanLang}}}`
         },
         template: '',
         filename: `main.${cleanLang}`
@@ -179,7 +181,13 @@ export function addLanguage(
     fs.writeFileSync(templateFile, template, 'utf8');
   }
 
-  const submitFile = options.submitFile || (preset ? (preset.config.submitFile || preset.filename) : `main.${extension}`);
+  let presetSubmitFile = '';
+  if (preset) {
+    presetSubmitFile = preset.config.submitFile || `{{file: ${preset.filename}}}`;
+  } else {
+    presetSubmitFile = `{{file: main.${extension}}}`;
+  }
+  const submitFile = options.submitFile || (presetSubmitFile.includes('{{file:') ? presetSubmitFile : `{{file: ${presetSubmitFile}}}`);
 
   config.languages[cleanLang] = {
     extension,

@@ -11,7 +11,7 @@ export interface LanguagePreset {
 
 export type PresetMap = Record<string, LanguagePreset>;
 
-const DEFAULT_CPP_TEMPLATE = `#include <iostream>
+const DEFAULT_CPP_TEMPLATE = `#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
@@ -47,9 +47,9 @@ const DEFAULT_PRESETS: PresetMap = {
     config: {
       extension: 'cpp',
       templateDir: 'templates/cpp',
-      build: 'g++ -O2 -std=gnu++20 -o a.out main.cpp',
+      build: 'g++ -O2 -std=gnu++20 -o a.out {{file: main.cpp}}',
       run: './a.out',
-      submitFile: 'main.cpp',
+      submitFile: '{{file: main.cpp}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -61,8 +61,8 @@ const DEFAULT_PRESETS: PresetMap = {
       extension: 'py',
       templateDir: 'templates/python',
       build: '',
-      run: 'python3 main.py',
-      submitFile: 'main.py',
+      run: 'python3 {{file: main.py}}',
+      submitFile: '{{file: main.py}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -73,9 +73,9 @@ const DEFAULT_PRESETS: PresetMap = {
     config: {
       extension: 'rs',
       templateDir: 'templates/rust',
-      build: 'rustc -O -o a.out main.rs',
+      build: 'rustc -O -o a.out {{file: main.rs}}',
       run: './a.out',
-      submitFile: 'main.rs',
+      submitFile: '{{file: main.rs}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -87,8 +87,8 @@ const DEFAULT_PRESETS: PresetMap = {
       extension: 'ts',
       templateDir: 'templates/typescript',
       build: '',
-      run: 'npx ts-node main.ts',
-      submitFile: 'main.ts',
+      run: 'npx ts-node {{file: main.ts}}',
+      submitFile: '{{file: main.ts}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -100,8 +100,8 @@ const DEFAULT_PRESETS: PresetMap = {
       extension: 'js',
       templateDir: 'templates/javascript',
       build: '',
-      run: 'node main.js',
-      submitFile: 'main.js',
+      run: 'node {{file: main.js}}',
+      submitFile: '{{file: main.js}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -112,9 +112,9 @@ const DEFAULT_PRESETS: PresetMap = {
     config: {
       extension: 'c',
       templateDir: 'templates/c',
-      build: 'gcc -O2 -std=c11 -o a.out main.c',
+      build: 'gcc -O2 -std=c11 -o a.out {{file: main.c}}',
       run: './a.out',
-      submitFile: 'main.c',
+      submitFile: '{{file: main.c}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -135,13 +135,96 @@ export function getLanguagePresets(): PresetMap {
     fs.mkdirSync(dir, { recursive: true });
   }
 
+  let loadedPresets: PresetMap | null = null;
+
   if (fs.existsSync(filePath)) {
     try {
       const data = fs.readFileSync(filePath, 'utf8');
-      return JSON.parse(data) as PresetMap;
+      loadedPresets = JSON.parse(data) as PresetMap;
     } catch {
-      // Ignore parse errors and return defaults
+      // Ignore parse errors
     }
+  }
+
+  if (loadedPresets) {
+    let migrated = false;
+    for (const [langKey, defaultPreset] of Object.entries(DEFAULT_PRESETS)) {
+      const userPreset = loadedPresets[langKey];
+      if (userPreset && userPreset.config) {
+        if (langKey === 'cpp') {
+          if (userPreset.config.build === 'g++ -O2 -std=gnu++20 -o a.out main.cpp') {
+            userPreset.config.build = 'g++ -O2 -std=gnu++20 -o a.out {{file: main.cpp}}';
+            migrated = true;
+          }
+          if (userPreset.config.submitFile === 'main.cpp') {
+            userPreset.config.submitFile = '{{file: main.cpp}}';
+            migrated = true;
+          }
+        }
+        if (langKey === 'python') {
+          if (userPreset.config.run === 'python3 main.py') {
+            userPreset.config.run = 'python3 {{file: main.py}}';
+            migrated = true;
+          }
+          if (userPreset.config.submitFile === 'main.py') {
+            userPreset.config.submitFile = '{{file: main.py}}';
+            migrated = true;
+          }
+        }
+        if (langKey === 'rust') {
+          if (userPreset.config.build === 'rustc -O -o a.out main.rs') {
+            userPreset.config.build = 'rustc -O -o a.out {{file: main.rs}}';
+            migrated = true;
+          }
+          if (userPreset.config.submitFile === 'main.rs') {
+            userPreset.config.submitFile = '{{file: main.rs}}';
+            migrated = true;
+          }
+        }
+        if (langKey === 'typescript') {
+          if (userPreset.config.run === 'npx ts-node main.ts') {
+            userPreset.config.run = 'npx ts-node {{file: main.ts}}';
+            migrated = true;
+          }
+          if (userPreset.config.submitFile === 'main.ts') {
+            userPreset.config.submitFile = '{{file: main.ts}}';
+            migrated = true;
+          }
+        }
+        if (langKey === 'javascript') {
+          if (userPreset.config.run === 'node main.js') {
+            userPreset.config.run = 'node {{file: main.js}}';
+            migrated = true;
+          }
+          if (userPreset.config.submitFile === 'main.js') {
+            userPreset.config.submitFile = '{{file: main.js}}';
+            migrated = true;
+          }
+        }
+        if (langKey === 'c') {
+          if (userPreset.config.build === 'gcc -O2 -std=c11 -o a.out main.c') {
+            userPreset.config.build = 'gcc -O2 -std=c11 -o a.out {{file: main.c}}';
+            migrated = true;
+          }
+          if (userPreset.config.submitFile === 'main.c') {
+            userPreset.config.submitFile = '{{file: main.c}}';
+            migrated = true;
+          }
+        }
+      } else if (!userPreset) {
+        loadedPresets[langKey] = defaultPreset;
+        migrated = true;
+      }
+    }
+
+    if (migrated) {
+      try {
+        fs.writeFileSync(filePath, JSON.stringify(loadedPresets, null, 2), { mode: 0o600 });
+      } catch {
+        // Ignore write errors
+      }
+    }
+    return loadedPresets;
   }
 
   // Seed default presets if file does not exist or fails to parse

@@ -92,9 +92,9 @@ export const DEFAULT_CONFIG: Config = {
     cpp: {
       extension: 'cpp',
       templateDir: 'templates/cpp',
-      build: 'g++ -O2 -std=gnu++20 -o a.out main.cpp',
+      build: 'g++ -O2 -std=gnu++20 -o a.out {{file: main.cpp}}',
       run: './a.out',
-      submitFile: 'main.cpp',
+      submitFile: '{{file: main.cpp}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -102,17 +102,17 @@ export const DEFAULT_CONFIG: Config = {
       extension: 'py',
       templateDir: 'templates/python',
       build: '',
-      run: 'python3 main.py',
-      submitFile: 'main.py',
+      run: 'python3 {{file: main.py}}',
+      submitFile: '{{file: main.py}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
     rust: {
       extension: 'rs',
       templateDir: 'templates/rust',
-      build: 'rustc -O -o a.out main.rs',
+      build: 'rustc -O -o a.out {{file: main.rs}}',
       run: './a.out',
-      submitFile: 'main.rs',
+      submitFile: '{{file: main.rs}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -120,8 +120,8 @@ export const DEFAULT_CONFIG: Config = {
       extension: 'ts',
       templateDir: 'templates/typescript',
       build: '',
-      run: 'npx ts-node main.ts',
-      submitFile: 'main.ts',
+      run: 'npx ts-node {{file: main.ts}}',
+      submitFile: '{{file: main.ts}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
@@ -129,17 +129,17 @@ export const DEFAULT_CONFIG: Config = {
       extension: 'js',
       templateDir: 'templates/javascript',
       build: '',
-      run: 'node main.js',
-      submitFile: 'main.js',
+      run: 'node {{file: main.js}}',
+      submitFile: '{{file: main.js}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     },
     c: {
       extension: 'c',
       templateDir: 'templates/c',
-      build: 'gcc -O2 -std=c11 -o a.out main.c',
+      build: 'gcc -O2 -std=c11 -o a.out {{file: main.c}}',
       run: './a.out',
-      submitFile: 'main.c',
+      submitFile: '{{file: main.c}}',
       atcoderLanguage: '',
       atcoderLanguageIdRegex: ''
     }

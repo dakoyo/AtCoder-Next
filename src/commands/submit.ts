@@ -150,12 +150,12 @@ export async function handleSubmit(
       // Copy code content to clipboard
       let codeCopied = false;
       try {
-        const { detectCodeFile } = require('../test-runner/runner');
+        const { detectCodeFile, resolvePlaceholder } = require('../test-runner/runner');
         const { loadConfig } = require('../config');
         const activeConfig = loadConfig(workspaceRoot);
         const { codeFile, langConfig } = detectCodeFile(workspaceRoot, resolvedTaskDir, activeConfig, options.file);
         if (langConfig.submitFile) {
-          const submitFilePath = path.join(resolvedTaskDir, langConfig.submitFile);
+          const submitFilePath = path.join(resolvedTaskDir, resolvePlaceholder(langConfig.submitFile, codeFile));
           if (fs.existsSync(submitFilePath)) {
             const codeContent = fs.readFileSync(submitFilePath, 'utf8');
             if (codeContent) {

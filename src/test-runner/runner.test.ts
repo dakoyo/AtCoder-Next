@@ -27,12 +27,27 @@ vi.mock('fs', async (importOriginal) => {
 
 describe('runner utils', () => {
   describe('resolveCommands', () => {
-    it('should return commands exactly as configured without substitution', () => {
+    it('should resolve placeholders with the specified file', () => {
+      const langConfig = {
+        extension: 'cpp',
+        templateDir: 'templates/cpp',
+        build: 'g++ -O2 -std=gnu++20 -o a.out {{file: main.cpp}}',
+        run: './a.out',
+        submitFile: '{{file: main.cpp}}'
+      };
+
+      const resolved = resolveCommands('/workspace', langConfig, 'sol.cpp', 'cpp');
+      expect(resolved.build).toBe('g++ -O2 -std=gnu++20 -o a.out sol.cpp');
+      expect(resolved.run).toBe('./a.out');
+    });
+
+    it('should return commands exactly as configured if no placeholder is present', () => {
       const langConfig = {
         extension: 'cpp',
         templateDir: 'templates/cpp',
         build: 'g++ -O2 -std=gnu++20 -o a.out main.cpp',
-        run: './a.out'
+        run: './a.out',
+        submitFile: 'main.cpp'
       };
 
       const resolved = resolveCommands('/workspace', langConfig, 'sol.cpp', 'cpp');
@@ -40,17 +55,18 @@ describe('runner utils', () => {
       expect(resolved.run).toBe('./a.out');
     });
 
-    it('should handle languages without build commands', () => {
+    it('should handle languages without build commands and with run placeholders', () => {
       const langConfig = {
         extension: 'py',
         templateDir: 'templates/python',
         build: '',
-        run: 'python3 main.py'
+        run: 'python3 {{file: main.py}}',
+        submitFile: '{{file: main.py}}'
       };
 
       const resolved = resolveCommands('/workspace', langConfig, 'sol.py', 'py');
       expect(resolved.build).toBe('');
-      expect(resolved.run).toBe('python3 main.py');
+      expect(resolved.run).toBe('python3 sol.py');
     });
   });
 

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as cheerio from 'cheerio';
 import { createAtCoderClient } from './client';
 import { loadConfig } from '../config';
-import { detectCodeFile } from '../test-runner/runner';
+import { detectCodeFile, resolvePlaceholder } from '../test-runner/runner';
 import { AtcError } from '../utils/errors';
 import { getLocale, t } from '../utils/i18n';
 
@@ -38,7 +38,7 @@ export async function submitTask(
     throw new AtcError(`No 'submitFile' specified in your language configuration. Setting 'submitFile' is required for submission.`);
   }
 
-  let submitFileName = langConfig.submitFile;
+  let submitFileName = resolvePlaceholder(langConfig.submitFile, codeFile);
   const candidatePath = path.join(taskDir, submitFileName);
   if (!fs.existsSync(candidatePath)) {
     throw new AtcError(`Submit file "${submitFileName}" specified in language configuration was not found. Did the build command fail?`);

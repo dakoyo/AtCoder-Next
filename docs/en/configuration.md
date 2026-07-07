@@ -21,9 +21,9 @@ The settings file is validated upon loading. Any corrupted keys or type mismatch
     "cpp": {
       "extension": "cpp",
       "templateDir": "templates/cpp",
-      "build": "g++ -O2 -std=gnu++20 -o a.out main.cpp",
+      "build": "g++ -O2 -std=gnu++20 -o a.out {{file: main.cpp}}",
       "run": "./a.out",
-      "submitFile": "main.cpp",
+      "submitFile": "{{file: main.cpp}}",
       "atcoderLanguage": "",
       "atcoderLanguageIdRegex": ""
     }
@@ -40,9 +40,9 @@ The settings file is validated upon loading. Any corrupted keys or type mismatch
 * **`languages`**: Build/run commands and extension definitions per language.
   * **`extension`**: Source file extension.
   * **`templateDir`**: Directory for the initial template code (`workspaceRoot/templates/[name]`).
-  * **`build`**: Command to compile/build your code before testing (leave empty if not needed).
-  * **`run`**: Command to run/execute compiled outputs or scripts.
-  * **`submitFile`**: Name of the source file to submit to AtCoder.
+  * **`build`**: Command to compile/build your code before testing (leave empty if not needed). You can use a `{{file: defaultFilename}}` placeholder (e.g. `g++ -O2 -std=gnu++20 -o a.out {{file: main.cpp}}`). When running a test or playing a solution with a specific file using the `-f` option, this placeholder is dynamically replaced with the specified file (falls back to the default filename if omitted).
+  * **`run`**: Command to run/execute compiled outputs or scripts. Similar to `build`, you can use the `{{file: defaultFilename}}` placeholder (e.g., `python3 {{file: main.py}}`).
+  * **`submitFile`**: Name of the source file to submit to AtCoder. Using `{{file: defaultFilename}}` placeholder allows submitting any file specified with the `-f` option.
   * **`atcoderLanguage`**: Literal text matching AtCoder's submission language dropdown (automatically matched if empty).
   * **`atcoderLanguageIdRegex`**: Internal regex used to identify dropdown options.
 * **`testDirName`**: Name of the directory where test cases are stored.
