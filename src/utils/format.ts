@@ -93,3 +93,21 @@ export function formatErrorOutputLines(errorOutput: string): string[] {
   const border = pc.gray('│');
   return lines.map(line => `   ${border}   ${pc.red(line)}`);
 }
+
+/**
+ * Formats a memory size in bytes to a human-readable string (e.g. KiB, MiB).
+ */
+export function formatMemory(bytes: number | undefined): string {
+  if (bytes === undefined || bytes === null || isNaN(bytes)) {
+    return 'Unknown';
+  }
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  const kib = bytes / 1024;
+  if (kib < 1024) {
+    return `${kib.toFixed(1)} KiB`;
+  }
+  const mib = kib / 1024;
+  return `${mib.toFixed(1)} MiB`;
+}

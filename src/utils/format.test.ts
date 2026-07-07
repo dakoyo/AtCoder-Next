@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatOutputLines, formatErrorOutputLines } from './format';
+import { formatOutputLines, formatErrorOutputLines, formatMemory } from './format';
 import pc from 'picocolors';
 
 describe('format utilities', () => {
@@ -64,6 +64,27 @@ describe('format utilities', () => {
     it('should return empty array for empty inputs', () => {
       expect(formatErrorOutputLines('')).toEqual([]);
       expect(formatErrorOutputLines(null as any)).toEqual([]);
+    });
+  });
+
+  describe('formatMemory', () => {
+    it('should handle undefined and NaN', () => {
+      expect(formatMemory(undefined)).toBe('Unknown');
+      expect(formatMemory(NaN)).toBe('Unknown');
+    });
+
+    it('should format bytes correctly', () => {
+      expect(formatMemory(500)).toBe('500 B');
+    });
+
+    it('should format KiB correctly', () => {
+      expect(formatMemory(1024)).toBe('1.0 KiB');
+      expect(formatMemory(1024 * 15.5)).toBe('15.5 KiB');
+    });
+
+    it('should format MiB correctly', () => {
+      expect(formatMemory(1024 * 1024)).toBe('1.0 MiB');
+      expect(formatMemory(1024 * 1024 * 4.25)).toBe('4.3 MiB');
     });
   });
 });

@@ -6,6 +6,48 @@ import { loadConfig, Config, LanguageConfig } from '../config';
 import { compareOutput } from './diff';
 import { AtcError } from '../utils/errors';
 
+// Windows Win32 FFI for Memory measurements via koffi
+let koffi: any = null;
+let OpenProcess: any = null;
+let CloseHandle: any = null;
+let GetProcessMemoryInfo: any = null;
+let PROCESS_MEMORY_COUNTERS: any = null;
+let isKoffiLoaded = false;
+
+if (process.platform === 'win32') {
+  try {
+    const pkgName = 'koffi';
+    koffi = require(pkgName);
+    const kernel32 = koffi.load('kernel32.dll');
+    const psapi = koffi.load('psapi.dll');
+
+    const HANDLE = koffi.pointer('HANDLE', koffi.opaque());
+    const DWORD = koffi.alias('DWORD', 'uint32_t');
+    const SIZE_T = koffi.alias('SIZE_T', process.arch === 'x64' ? 'uint64_t' : 'uint32_t');
+    const BOOL = koffi.alias('BOOL', 'int');
+
+    PROCESS_MEMORY_COUNTERS = koffi.struct('PROCESS_MEMORY_COUNTERS', {
+      cb: DWORD,
+      PageFaultCount: DWORD,
+      PeakWorkingSetSize: SIZE_T,
+      WorkingSetSize: SIZE_T,
+      QuotaPeakPagedPoolUsage: SIZE_T,
+      QuotaPagedPoolUsage: SIZE_T,
+      QuotaPeakNonPagedPoolUsage: SIZE_T,
+      QuotaNonPagedPoolUsage: SIZE_T,
+      PagefileUsage: SIZE_T,
+      PeakPagefileUsage: SIZE_T
+    });
+
+    OpenProcess = kernel32.func('OpenProcess', HANDLE, ['uint32_t', 'int', 'uint32_t']);
+    CloseHandle = kernel32.func('CloseHandle', BOOL, [HANDLE]);
+    GetProcessMemoryInfo = psapi.func('GetProcessMemoryInfo', BOOL, [HANDLE, koffi.pointer(PROCESS_MEMORY_COUNTERS), 'uint32_t']);
+    isKoffiLoaded = true;
+  } catch (e) {
+    // Gracefully ignore loading failure if koffi is not installed
+  }
+}
+
 export interface TestCaseResult {
   index: number;
   status: 'AC' | 'WA' | 'TLE' | 'RE';
@@ -14,6 +56,7 @@ export interface TestCaseResult {
   expectedOutput: string;
   errorOutput?: string;
   firstDiffLine?: number;
+  memoryByte?: number;
 }
 
 export interface RunAllTestsResult {
@@ -256,13 +299,39 @@ export function runTestCase(
     
     const { command, args } = parseCommandString(runCommand);
     const resolvedCommand = resolveSpawnCommand(command, taskDir);
-    const child = spawn(resolvedCommand, args, {
+
+    let spawnCommand = resolvedCommand;
+    let spawnArgs = args;
+
+    const useBsdTime = process.platform === 'darwin' && fs.existsSync('/usr/bin/time');
+    const useGnuTime = process.platform === 'linux' && fs.existsSync('/usr/bin/time');
+
+    if (useBsdTime) {
+      spawnCommand = '/usr/bin/time';
+      spawnArgs = ['-l', resolvedCommand, ...args];
+    } else if (useGnuTime) {
+      spawnCommand = '/usr/bin/time';
+      spawnArgs = ['-v', resolvedCommand, ...args];
+    }
+
+    let procHandle: any = null;
+    const PROCESS_QUERY_INFORMATION = 0x0400;
+    const PROCESS_VM_READ = 0x0010;
+
+    const child = spawn(spawnCommand, spawnArgs, {
       cwd: taskDir,
       shell: false
     });
 
     child.on('spawn', () => {
       startTime = process.hrtime.bigint();
+      if (process.platform === 'win32' && isKoffiLoaded && child.pid) {
+        try {
+          procHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, child.pid);
+        } catch (e) {
+          // ignore
+        }
+      }
     });
     
     let stdout = '';
@@ -286,6 +355,11 @@ export function runTestCase(
       clearTimeout(timer);
       const endTime = process.hrtime.bigint();
       const durationMs = Number(endTime - startTime) / 1e6;
+      if (process.platform === 'win32' && isKoffiLoaded && procHandle) {
+        try {
+          CloseHandle(procHandle);
+        } catch (e) {}
+      }
       resolve({
         index,
         status: 'RE',
@@ -301,6 +375,59 @@ export function runTestCase(
       const endTime = process.hrtime.bigint();
       const durationMs = Number(endTime - startTime) / 1e6;
       
+      let memoryByte: number | undefined;
+
+      // Windows memory measurement
+      if (process.platform === 'win32' && isKoffiLoaded && procHandle) {
+        try {
+          const counters = {
+            cb: koffi.sizeof(PROCESS_MEMORY_COUNTERS),
+            PageFaultCount: 0,
+            PeakWorkingSetSize: 0,
+            WorkingSetSize: 0,
+            QuotaPeakPagedPoolUsage: 0,
+            QuotaPagedPoolUsage: 0,
+            QuotaPeakNonPagedPoolUsage: 0,
+            QuotaNonPagedPoolUsage: 0,
+            PagefileUsage: 0,
+            PeakPagefileUsage: 0
+          };
+          const success = GetProcessMemoryInfo(procHandle, counters, counters.cb);
+          if (success) {
+            memoryByte = counters.PeakWorkingSetSize;
+          }
+        } catch (e) {
+          // ignore
+        } finally {
+          try {
+            CloseHandle(procHandle);
+          } catch (e) {}
+        }
+      }
+
+      // macOS / Linux memory measurement & stderr cleansing
+      if (useBsdTime) {
+        const startMatch = stderr.match(/^\s*\d+\.\d+\s+real\s+\d+\.\d+\s+user\s+\d+\.\d+\s+sys\s*$/m);
+        if (startMatch && startMatch.index !== undefined) {
+          const timeOutput = stderr.substring(startMatch.index);
+          stderr = stderr.substring(0, startMatch.index);
+          const memMatch = timeOutput.match(/^\s*(\d+)\s+maximum resident set size/m);
+          if (memMatch) {
+            memoryByte = parseInt(memMatch[1], 10);
+          }
+        }
+      } else if (useGnuTime) {
+        const startIdx = stderr.indexOf('Command being timed:');
+        if (startIdx !== -1) {
+          const timeOutput = stderr.substring(startIdx);
+          stderr = stderr.substring(0, startIdx);
+          const memMatch = timeOutput.match(/Maximum resident set size \(kbytes\):\s*(\d+)/);
+          if (memMatch) {
+            memoryByte = parseInt(memMatch[1], 10) * 1024;
+          }
+        }
+      }
+      
       if (killedByTimeout || signal === 'SIGKILL') {
         resolve({
           index,
@@ -308,7 +435,8 @@ export function runTestCase(
           durationMs,
           actualOutput: stdout,
           expectedOutput: expected,
-          errorOutput: 'Time Limit Exceeded'
+          errorOutput: 'Time Limit Exceeded',
+          memoryByte
         });
         return;
       }
@@ -320,7 +448,8 @@ export function runTestCase(
           durationMs,
           actualOutput: stdout,
           expectedOutput: expected,
-          errorOutput: stderr || `Exit code ${code}`
+          errorOutput: stderr || `Exit code ${code}`,
+          memoryByte
         });
         return;
       }
@@ -332,7 +461,8 @@ export function runTestCase(
         durationMs,
         actualOutput: stdout,
         expectedOutput: expected,
-        firstDiffLine: comp.firstDiffLine
+        firstDiffLine: comp.firstDiffLine,
+        memoryByte
       });
     });
     

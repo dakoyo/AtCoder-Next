@@ -28,7 +28,7 @@ import { createAtCoderClient } from './atcoder/client';
 import { parseSubmissionStatus } from './atcoder/parser/submission-status';
 import { parseProblemPage } from './atcoder/parser/problem-page';
 import { AtcError, WorkspaceNotFoundError } from './utils/errors';
-import { formatOutputLines, formatErrorOutputLines } from './utils/format';
+import { formatOutputLines, formatErrorOutputLines, formatMemory } from './utils/format';
 import { getLanguage, t, getSystemLanguage } from './utils/i18n';
 import { openUrl, copyToClipboard } from './utils/open';
 import { bundleFiles } from './utils/bundler';
@@ -649,12 +649,13 @@ program
       for (const res of testRes.results) {
         const label = `sample-${res.index}`;
         const duration = `${res.durationMs.toFixed(0)} ms`;
+        const memory = res.memoryByte !== undefined ? `, Memory: ${formatMemory(res.memoryByte)}` : '';
 
         if (res.status === 'AC') {
-          p.log.success(`${pc.green(pc.bold('[AC]'))} ${label}: Passed (${duration})`);
+          p.log.success(`${pc.green(pc.bold('[AC]'))} ${label}: Passed (${duration}${memory})`);
         } else if (res.status === 'WA') {
           allPassed = false;
-          p.log.error(`${pc.red(pc.bold('[WA]'))} ${label}: Failed (${duration})`);
+          p.log.error(`${pc.red(pc.bold('[WA]'))} ${label}: Failed (${duration}${memory})`);
           console.log(`   ${pc.gray('┌────────────────────────────────────────────────────────')}`);
           console.log(`   ${pc.gray('│')} ${pc.bold('Expected Output:')}`);
           formatOutputLines(res.expectedOutput, res.firstDiffLine).forEach(l => console.log(l));
@@ -668,10 +669,10 @@ program
           console.log(`   ${pc.gray('└────────────────────────────────────────────────────────')}`);
         } else if (res.status === 'TLE') {
           allPassed = false;
-          p.log.error(`${pc.red(pc.bold('[TLE]'))} ${label}: Time Limit Exceeded (${duration} vs Limit ${timeLimitMs} ms)`);
+          p.log.error(`${pc.red(pc.bold('[TLE]'))} ${label}: Time Limit Exceeded (${duration}${memory} vs Limit ${timeLimitMs} ms)`);
         } else if (res.status === 'RE') {
           allPassed = false;
-          p.log.error(`${pc.red(pc.bold('[RE]'))} ${label}: Runtime Error (${duration})`);
+          p.log.error(`${pc.red(pc.bold('[RE]'))} ${label}: Runtime Error (${duration}${memory})`);
           if (res.errorOutput) {
             console.log(`   ${pc.gray('┌────────────────────────────────────────────────────────')}`);
             console.log(`   ${pc.gray('│')} ${pc.bold('Error Output:')}`);

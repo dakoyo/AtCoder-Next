@@ -31,6 +31,12 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Install GNU time on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y time
+
       - name: Build TypeScript CLI
         run: npm run build
 
@@ -266,9 +272,13 @@ jobs:
             # 3. テストを実行し、すべてのテストケースがパスする (AC) か確かめる
             # test コマンドは、一部でも WA やエラーがあると非ゼロの終了コードを返すため、
             # 失敗時にはここでワークフロー全体がエラー終了します。
-            node dist/cli.js test abs 1
+            node dist/cli.js test abs 1 2>&1 | tee test.log
             
-            echo "Successfully verified compile & test for $lang!"
+            # メモリ使用量が正常に計測・出力されているか確認
+            echo "Checking if memory usage is displayed in test output..."
+            grep -q "Memory:" test.log || (echo "Error: Memory usage was not measured or displayed in test output for $lang!" && exit 1)
+            
+            echo "Successfully verified compile & test with memory measurement for $lang!"
           done
 
       - name: Verify Installed Tools (Bash)
