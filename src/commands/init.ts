@@ -112,9 +112,5 @@ export async function handleInit(dirArg?: string, options?: any) {
     p.log.success(t('initCreatedConfig', selectedDisplayLang, defaultLanguage));
   }
 
-  if (gitignoreUpdated) {
-    p.log.success(t('initGitignoreUpdated', selectedDisplayLang));
-  }
-
   p.outro(pc.green(t('initOutro', selectedDisplayLang)));
 }
