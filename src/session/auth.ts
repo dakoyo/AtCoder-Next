@@ -2,14 +2,16 @@ import * as cheerio from 'cheerio';
 import { saveSession, loadSession, SavedCookie } from './store';
 import { createAtCoderClient } from '../atcoder/client';
 import { AuthError } from '../utils/errors';
+import { getLocale, t } from '../utils/i18n';
 
 /**
  * Saves a manually entered REVEL_SESSION cookie and verifies the session.
  */
 export async function loginWithCookie(workspaceRoot: string, revelSession: string): Promise<string> {
+  const locale = getLocale(workspaceRoot);
   let cleanSession = revelSession.trim();
   if (!cleanSession) {
-    throw new AuthError('REVEL_SESSION cookie value cannot be empty.');
+    throw new AuthError(t('authCookieNotEmpty', locale));
   }
 
   if (cleanSession.startsWith('REVEL_SESSION=')) {
@@ -18,7 +20,7 @@ export async function loginWithCookie(workspaceRoot: string, revelSession: strin
   cleanSession = cleanSession.split(';')[0].trim();
 
   if (!cleanSession) {
-    throw new AuthError('Could not extract a valid REVEL_SESSION value.');
+    throw new AuthError(t('authInvalidCookieExtract', locale));
   }
 
   const savedCookies: SavedCookie[] = [
@@ -44,7 +46,7 @@ export async function loginWithCookie(workspaceRoot: string, revelSession: strin
       const { clearSession } = require('./store');
       clearSession(workspaceRoot);
     } catch (e) {}
-    throw new AuthError(`The provided REVEL_SESSION cookie is invalid or expired: ${err.message}`);
+    throw new AuthError(t('authCookieInvalidOrExpired', locale, err.message));
   }
 }
 
@@ -52,9 +54,10 @@ export async function loginWithCookie(workspaceRoot: string, revelSession: strin
  * Checks the login status by requesting the AtCoder settings page with saved session cookies.
  */
 export async function whoami(workspaceRoot: string): Promise<string> {
+  const locale = getLocale(workspaceRoot);
   const session = loadSession(workspaceRoot);
   if (!session || !session.some(c => c.name === 'REVEL_SESSION')) {
-    throw new AuthError('No active session. Please log in using "atc login".');
+    throw new AuthError(t('authNoActiveSession', locale));
   }
 
   const client = createAtCoderClient(workspaceRoot);
@@ -79,9 +82,9 @@ export async function whoami(workspaceRoot: string): Promise<string> {
       }
     }
 
-    throw new AuthError('Session is invalid or expired.');
+    throw new AuthError(t('authSessionInvalidOrExpired', locale));
   } catch (err: any) {
     if (err instanceof AuthError) throw err;
-    throw new AuthError(`Failed to verify session: ${err.message}`);
+    throw new AuthError(t('authVerifyFailed', locale, err.message));
   }
 }

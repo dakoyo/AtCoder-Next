@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as esbuild from 'esbuild';
 import { spawnSync } from 'child_process';
 import { AtcError } from './errors';
+import { getLocale, t } from './i18n';
 
 export function validatePathInsideWorkspace(targetPath: string, workspaceRoot: string | undefined): void {
   if (!workspaceRoot) return;
@@ -14,7 +15,8 @@ export function validatePathInsideWorkspace(targetPath: string, workspaceRoot: s
   const isRoot = resolvedTarget === resolvedRoot;
 
   if (!isInside && !isRoot) {
-    throw new AtcError(`Access denied: File "${targetPath}" is outside the workspace root.`);
+    const locale = getLocale(workspaceRoot);
+    throw new AtcError(t('bundlerOutsideWorkspace', locale, targetPath));
   }
 }
 
@@ -179,12 +181,13 @@ function bundlePython(inputs: string[], resolvedOutputPath: string, workspaceRoo
 
   const entryDir = path.dirname(path.resolve(inputs[0]));
 
+  const locale = getLocale(workspaceRoot);
   function processPythonFile(filePath: string, isEntry: boolean = false): void {
     const absolutePath = path.resolve(filePath);
     validatePathInsideWorkspace(absolutePath, workspaceRoot);
 
     if (activeStack.includes(absolutePath)) {
-      throw new AtcError(`Circular dependency detected: ${activeStack.join(' -> ')} -> ${absolutePath}`);
+      throw new AtcError(t('bundlerCircularDep', locale, activeStack.join(' -> '), absolutePath));
     }
 
     if (visited.has(absolutePath)) {
@@ -270,12 +273,12 @@ function bundlePython(inputs: string[], resolvedOutputPath: string, workspaceRoo
         }
       }
       if (!found) {
-        throw new AtcError(`File not found: ${input}`);
+        throw new AtcError(t('bundlerFileNotFound', locale, input));
       }
     }
 
     if (absoluteInputPath === resolvedOutputPath) {
-      throw new AtcError(`Input file and output file cannot be the same: "${input}".`);
+      throw new AtcError(t('bundlerSameInOut', locale, input));
     }
 
     processPythonFile(absoluteInputPath, true);
@@ -320,6 +323,7 @@ function bundlePython(inputs: string[], resolvedOutputPath: string, workspaceRoo
 }
 
 function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?: string, extraArgs: string[] = []): void {
+  const locale = getLocale(workspaceRoot);
   let outputContent = '';
 
   for (const input of inputs) {
@@ -341,12 +345,12 @@ function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?
         }
       }
       if (!found) {
-        throw new AtcError(`File not found: ${input}`);
+        throw new AtcError(t('bundlerFileNotFound', locale, input));
       }
     }
 
     if (absoluteInputPath === resolvedOutputPath) {
-      throw new AtcError(`Input file and output file cannot be the same: "${input}".`);
+      throw new AtcError(t('bundlerSameInOut', locale, input));
     }
 
     validatePathInsideWorkspace(absoluteInputPath, workspaceRoot);
@@ -371,7 +375,7 @@ function bundleJsTs(inputs: string[], resolvedOutputPath: string, workspaceRoot?
         outputContent += result.outputFiles[0].text + '\n';
       }
     } catch (e: any) {
-      throw new AtcError(`Failed to bundle JS/TS file "${input}": ${e.message}`);
+      throw new AtcError(t('bundlerFailedJsTs', locale, input, e.message));
     }
   }
 
@@ -420,18 +424,19 @@ function bundleRust(inputs: string[], resolvedOutputPath: string, workspaceRoot?
 
   const modRegex = /^\s*(?:pub\s+)?mod\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*;/;
 
+  const locale = getLocale(workspaceRoot);
   function processRustFile(filePath: string): string[] {
     const absolutePath = path.resolve(filePath);
     validatePathInsideWorkspace(absolutePath, workspaceRoot);
 
     if (activeStack.includes(absolutePath)) {
-      throw new AtcError(`Circular dependency detected: ${activeStack.join(' -> ')} -> ${absolutePath}`);
+      throw new AtcError(t('bundlerCircularDep', locale, activeStack.join(' -> '), absolutePath));
     }
 
     activeStack.push(absolutePath);
 
     if (!fs.existsSync(absolutePath)) {
-      throw new AtcError(`File not found: ${filePath}`);
+      throw new AtcError(t('bundlerFileNotFound', locale, filePath));
     }
 
     const content = fs.readFileSync(absolutePath, 'utf8');
@@ -487,12 +492,12 @@ function bundleRust(inputs: string[], resolvedOutputPath: string, workspaceRoot?
         }
       }
       if (!found) {
-        throw new AtcError(`File not found: ${input}`);
+        throw new AtcError(t('bundlerFileNotFound', locale, input));
       }
     }
 
     if (absoluteInputPath === resolvedOutputPath) {
-      throw new AtcError(`Input file and output file cannot be the same: "${input}".`);
+      throw new AtcError(t('bundlerSameInOut', locale, input));
     }
 
     const lines = processRustFile(absoluteInputPath);
@@ -509,6 +514,7 @@ function bundleRust(inputs: string[], resolvedOutputPath: string, workspaceRoot?
 
 export function bundleFiles(inputs: string[], outputPath: string, workspaceRoot?: string, extraArgs?: string[]): void {
   const resolvedOutputPath = path.resolve(outputPath);
+  const locale = getLocale(workspaceRoot);
 
   if (inputs.some(isJsTsFile)) {
     bundleJsTs(inputs, resolvedOutputPath, workspaceRoot, extraArgs);
@@ -544,7 +550,7 @@ export function bundleFiles(inputs: string[], outputPath: string, workspaceRoot?
       }
     }
     if (absoluteInputPath === resolvedOutputPath) {
-      throw new AtcError(`Input file and output file cannot be the same: "${input}".`);
+      throw new AtcError(t('bundlerSameInOut', locale, input));
     }
   }
 
@@ -579,14 +585,14 @@ export function bundleFiles(inputs: string[], outputPath: string, workspaceRoot?
       }
 
       if (!found) {
-        throw new AtcError(`File not found: ${filePath}`);
+        throw new AtcError(t('bundlerFileNotFound', locale, filePath));
       }
     }
 
     validatePathInsideWorkspace(absolutePath, workspaceRoot);
 
     if (activeStack.includes(absolutePath)) {
-      throw new AtcError(`Circular dependency detected: ${activeStack.join(' -> ')} -> ${absolutePath}`);
+      throw new AtcError(t('bundlerCircularDep', locale, activeStack.join(' -> '), absolutePath));
     }
 
     if (visited.has(absolutePath)) {
@@ -599,7 +605,7 @@ export function bundleFiles(inputs: string[], outputPath: string, workspaceRoot?
     const config = getLanguageConfig(absolutePath);
     if (!config) {
       const ext = path.extname(absolutePath);
-      throw new AtcError(`Unsupported file type: "${ext || path.basename(absolutePath)}".`);
+      throw new AtcError(t('bundlerUnsupportedFileType', locale, ext || path.basename(absolutePath)));
     }
     const content = fs.readFileSync(absolutePath, 'utf8');
     const lines = content.split(/\r?\n/);
@@ -640,7 +646,7 @@ export function bundleFiles(inputs: string[], outputPath: string, workspaceRoot?
             }
           }
           if (!found) {
-            throw new AtcError(`Included file "${importPath}" not found (searched relative to "${currentDir}", workspace root, and CWD).`);
+            throw new AtcError(t('bundlerIncludedFileNotFound', locale, importPath, currentDir));
           }
         }
 
@@ -652,7 +658,7 @@ export function bundleFiles(inputs: string[], outputPath: string, workspaceRoot?
           if (err instanceof AtcError) {
             throw err;
           }
-          throw new AtcError(`Failed to bundle "${importPath}" included in "${absolutePath}": ${err.message}`);
+          throw new AtcError(t('bundlerFailedToBundleIncluded', locale, importPath, absolutePath, err.message));
         }
       } else {
         const cleaned = config.cleanLine(line);

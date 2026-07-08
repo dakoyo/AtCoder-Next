@@ -28,6 +28,9 @@ export function getSystemLocale(): Locale {
  * Looks up the workspace config first, then falls back to system locale.
  */
 export function getLocale(workspaceRoot?: string): Locale {
+  if (process.env.ATC_LOCALE === 'en' || process.env.ATC_LOCALE === 'ja') {
+    return process.env.ATC_LOCALE;
+  }
   let root = workspaceRoot;
   if (!root) {
     try {
@@ -823,6 +826,342 @@ export const MESSAGES = {
   setupAbortedHalfway: {
     en: 'Setup aborted. Already executed installation commands remain, but subsequent commands and settings updates were skipped.',
     ja: 'セットアップを中止しました。実行済みのコマンドは残りますが、これ以降の処理および settings.json への反映はスキップされます。'
+  },
+  newFetchingTasksFailed: {
+    en: (contestId: string, msg: string) => `Failed to fetch tasks for contest "${contestId}": ${msg}`,
+    ja: (contestId: string, msg: string) => `コンテスト "${contestId}" の問題一覧の取得に失敗しました: ${msg}`
+  },
+  langConfigNotFound: {
+    en: (langKey: string) => `Language configuration for "${langKey}" not found in settings.json`,
+    ja: (langKey: string) => `settings.json に "${langKey}" の言語設定が見つかりませんでした。`
+  },
+  newFetchingProblemPageFailed: {
+    en: (taskId: string, msg: string) => `Failed to fetch problem page for "${taskId}": ${msg}`,
+    ja: (taskId: string, msg: string) => `問題 "${taskId}" の問題ページの取得に失敗しました: ${msg}`
+  },
+  newStatementBypassProhibited: {
+    en: 'Unexpected problem statement extraction during an active contest. Bypassing contest rules is strictly prohibited.',
+    ja: '実施中のコンテストに対する問題文の抽出は許可されていません。コンテストの規則を回避する行為は固く禁止されています。'
+  },
+  submitTaskDirNotFound: {
+    en: (taskLabel: string, contestId: string) => `Task directory "${taskLabel}" not found in contest "${contestId}".`,
+    ja: (taskLabel: string, contestId: string) => `コンテスト "${contestId}" の中に問題フォルダ "${taskLabel}" が見つかりませんでした。`
+  },
+  submitNoSubmitFile: {
+    en: 'No \'submitFile\' specified in your language configuration. Setting \'submitFile\' is required for submission.',
+    ja: '言語設定に \'submitFile\' が指定されていません。提出するには \'submitFile\' の設定が必要です。'
+  },
+  submitFileNotFound: {
+    en: (submitFileName: string) => `Submit file "${submitFileName}" specified in language configuration was not found. Did the build command fail?`,
+    ja: (submitFileName: string) => `言語設定で指定された提出ファイル "${submitFileName}" が見つかりませんでした。ビルドに失敗していませんか？`
+  },
+  submitAccessPageFailed: {
+    en: (msg: string) => `Failed to access AtCoder submit page: ${msg}`,
+    ja: (msg: string) => `AtCoderの提出ページへのアクセスに失敗しました: ${msg}`
+  },
+  submitNoCsrfToken: {
+    en: 'Could not find CSRF token. Make sure you are logged in (run "atc login").',
+    ja: 'CSRFトークンが見つかりませんでした。ログインしているか確認してください（"atc login" を実行してください）。'
+  },
+  submitNoLanguagesOnPage: {
+    en: 'No language options available on AtCoder submit page.',
+    ja: 'AtCoderの提出ページに言語の選択肢が見つかりませんでした。'
+  },
+  submitNoSubmissionId: {
+    en: 'Submission succeeded but could not retrieve the submission ID.',
+    ja: '提出は成功しましたが、提出IDを取得できませんでした。'
+  },
+  submitFailedWithErr: {
+    en: (msg: string) => `Failed to submit code: ${msg}`,
+    ja: (msg: string) => `コードの提出に失敗しました: ${msg}`
+  },
+  langNonInteractive: {
+    en: 'Non-interactive environment detected. Please specify the language name as an argument.',
+    ja: '非インタラクティブ環境が検出されました。引数で言語名を指定してください。'
+  },
+  addLangNonInteractive: {
+    en: 'Non-interactive environment detected. Please specify the programming language name as an argument.',
+    ja: '非インタラクティブ環境が検出されました。引数でプログラミング言語名を指定してください。'
+  },
+  addLangPromptNonInteractive: {
+    en: 'Non-interactive environment detected. Prompt inputs cannot be requested.',
+    ja: '非インタラクティブ環境が検出されました。プロンプトからの入力を求めることはできません。'
+  },
+  defaultLangNonInteractive: {
+    en: 'Non-interactive environment detected. Please specify the default language name as an argument.',
+    ja: '非インタラクティブ環境が検出されました。引数でデフォルトの言語名を指定してください。'
+  },
+  defaultLangNoLanguages: {
+    en: 'No languages configured in this workspace. Please run "atc init" or "atc add-lang".',
+    ja: 'このワークスペースには言語設定がありません。"atc init" または "atc add-lang" を実行してください。'
+  },
+  loginNonInteractive: {
+    en: 'Non-interactive environment detected. Interactive login is not supported in this mode.',
+    ja: '非インタラクティブ環境が検出されました。このモードではインタラクティブなログインはサポートされていません。'
+  },
+  newNonInteractiveWarn: {
+    en: 'Non-interactive environment detected. Setting up all tasks automatically.',
+    ja: '非インタラクティブ環境が検出されました。すべての問題を自動的にセットアップします。'
+  },
+  openNoContestId: {
+    en: 'Contest ID could not be determined. Please specify it explicitly (e.g., "atc open abc300").',
+    ja: 'コンテストIDを判定できませんでした。明示的に指定してください（例: "atc open abc300"）。'
+  },
+  utilsInWorkspaceRoot: {
+    en: 'You are in the workspace root. Please specify a task directory (e.g., "atc test abc300/a").',
+    ja: 'ワークスペースのルートにいます。問題のディレクトリを指定してください（例: "atc test abc300/a"）。'
+  },
+  utilsNoContestId: {
+    en: 'Contest ID could not be determined. Please specify it explicitly.',
+    ja: 'コンテストIDを判定できませんでした。明示的に指定してください。'
+  },
+  utilsNoTaskLabel: {
+    en: 'Task label could not be determined. Please specify it explicitly.',
+    ja: '問題ラベルを判定できませんでした。明示的に指定してください。'
+  },
+  utilsTaskDirNotFound: {
+    en: (resolvedTaskDir: string) => `Task directory not found: "${resolvedTaskDir}"`,
+    ja: (resolvedTaskDir: string) => `問題のディレクトリが見つかりませんでした: "${resolvedTaskDir}"`
+  },
+  runnerTaskDirNotFound: {
+    en: (taskArg: string) => `Task directory "${taskArg}" not found.`,
+    ja: (taskArg: string) => `問題のディレクトリ "${taskArg}" が見つかりませんでした。`
+  },
+  runnerSpecifiedFileNotFound: {
+    en: (fileArg: string, taskDir: string) => `Specified source file "${fileArg}" not found in "${taskDir}"`,
+    ja: (fileArg: string, taskDir: string) => `指定されたソースファイル "${fileArg}" が "${taskDir}" 内に見つかりませんでした。`
+  },
+  runnerNoLangConfig: {
+    en: (ext: string) => `No language configuration found for file extension ".${ext}"`,
+    ja: (ext: string) => `ファイル拡張子 ".${ext}" に対応する言語設定が見つかりませんでした。`
+  },
+  runnerNoSourceFiles: {
+    en: (taskDir: string) => `No source files found in "${taskDir}" matching configured languages.`,
+    ja: (taskDir: string) => `"${taskDir}" 内に設定済みの言語と一致するソースファイルが見つかりませんでした。`
+  },
+  runnerTestDirNotFound: {
+    en: (testDir: string) => `Test directory "${testDir}" not found.`,
+    ja: (testDir: string) => `テストディレクトリ "${testDir}" が見つかりませんでした。`
+  },
+  bundlerOutsideWorkspace: {
+    en: (targetPath: string) => `Access denied: File "${targetPath}" is outside the workspace root.`,
+    ja: (targetPath: string) => `アクセスが拒否されました: ファイル "${targetPath}" はワークスペースルートの外にあります。`
+  },
+  bundlerCircularDep: {
+    en: (stack: string, absolutePath: string) => `Circular dependency detected: ${stack} -> ${absolutePath}`,
+    ja: (stack: string, absolutePath: string) => `循環依存関係が検出されました: ${stack} -> ${absolutePath}`
+  },
+  bundlerFileNotFound: {
+    en: (input: string) => `File not found: ${input}`,
+    ja: (input: string) => `ファイルが見つかりません: ${input}`
+  },
+  bundlerSameInOut: {
+    en: (input: string) => `Input file and output file cannot be the same: "${input}".`,
+    ja: (input: string) => `入力ファイルと出力ファイルに同じファイルを指定することはできません: "${input}"`
+  },
+  bundlerFailedJsTs: {
+    en: (input: string, msg: string) => `Failed to bundle JS/TS file "${input}": ${msg}`,
+    ja: (input: string, msg: string) => `JS/TSファイル "${input}" のバンドルに失敗しました: ${msg}`
+  },
+  bundlerUnsupportedFileType: {
+    en: (type: string) => `Unsupported file type: "${type}".`,
+    ja: (type: string) => `サポートされていないファイル形式です: "${type}"`
+  },
+  bundlerIncludedFileNotFound: {
+    en: (importPath: string, currentDir: string) => `Included file "${importPath}" not found (searched relative to "${currentDir}", workspace root, and CWD).`,
+    ja: (importPath: string, currentDir: string) => `インクルードされたファイル "${importPath}" が見つかりませんでした（"${currentDir}" からの相対パス、ワークスペースルート、およびカレントワーキングディレクトリを検索しました）。`
+  },
+  bundlerFailedToBundleIncluded: {
+    en: (importPath: string, absolutePath: string, msg: string) => `Failed to bundle "${importPath}" included in "${absolutePath}": ${msg}`,
+    ja: (importPath: string, absolutePath: string, msg: string) => `"${absolutePath}" にインクルードされている "${importPath}" のバンドルに失敗しました: ${msg}`
+  },
+  testHeaderCompileError: {
+    en: '──────────────────────── Compilation Error ────────────────────────',
+    ja: '──────────────────────── コンパイルエラー ────────────────────────'
+  },
+  testBorder: {
+    en: '───────────────────────────────────────────────────────────────────',
+    ja: '───────────────────────────────────────────────────────────────────'
+  },
+  testExpectedOutput: {
+    en: 'Expected Output:',
+    ja: '期待される出力 (Expected):'
+  },
+  testActualOutput: {
+    en: 'Actual Output:',
+    ja: '実際の出力 (Actual):'
+  },
+  testErrorOutput: {
+    en: 'Error Output:',
+    ja: 'エラー出力:'
+  },
+  testStatusAC: {
+    en: (label: string, duration: string, memory: string) => `[AC] ${label}: Passed (${duration}${memory})`,
+    ja: (label: string, duration: string, memory: string) => `[AC] ${label}: パスしました (${duration}${memory})`
+  },
+  testStatusWA: {
+    en: (label: string, duration: string, memory: string) => `[WA] ${label}: Failed (${duration}${memory})`,
+    ja: (label: string, duration: string, memory: string) => `[WA] ${label}: 失敗しました (${duration}${memory})`
+  },
+  testStatusRE: {
+    en: (label: string, duration: string, memory: string) => `[RE] ${label}: Runtime Error (${duration}${memory})`,
+    ja: (label: string, duration: string, memory: string) => `[RE] ${label}: 実行時エラー (${duration}${memory})`
+  },
+  testStatusTLE: {
+    en: (label: string, limit: number) => `[TLE] ${label}: Time Limit Exceeded (Limit: ${limit} ms)`,
+    ja: (label: string, limit: number) => `[TLE] ${label}: 実行時間制限超過 (制限時間: ${limit} ms)`
+  },
+  playRunningFailed: {
+    en: (msg: string) => `Failed to start the process: ${msg}`,
+    ja: (msg: string) => `プロセスの起動に失敗しました: ${msg}`
+  },
+  playTerminatedSignal: {
+    en: (signal: string) => `Process terminated with signal ${signal}`,
+    ja: (signal: string) => `プロセスがシグナル ${signal} で終了しました。`
+  },
+  playExitedCode: {
+    en: (code: number) => `Process exited with code ${code}`,
+    ja: (code: number) => `プロセスがコード ${code} で終了しました。`
+  },
+  submitYesProceed: {
+    en: 'Proceeding with submission automatically due to --yes option.',
+    ja: '--yes オプションが指定されたため、自動的に提出を実行します。'
+  },
+  submitAbortingNonInteractive: {
+    en: 'Aborting submission automatically in non-interactive environment due to test failures.',
+    ja: 'テストが失敗したため、非インタラクティブ環境下で自動的に提出を中止します。'
+  },
+  submitManualRequired: {
+    en: 'Manual Submit Required',
+    ja: '手動提出が必要です'
+  },
+  submitPollingStatus: {
+    en: (status: string) => `Judge Status: ${status}`,
+    ja: (status: string) => `ジャッジ状況: ${status}`
+  },
+  submitNetworkRetry: {
+    en: (msg: string) => `Polling status... (network retry: ${msg})`,
+    ja: (msg: string) => `状況を取得中... (ネットワーク再試行: ${msg})`
+  },
+  submitDone: {
+    en: 'Done.',
+    ja: '完了。'
+  },
+  bundlerBundlingFiles: {
+    en: 'Bundling files...',
+    ja: 'ファイルをバンドル中...'
+  },
+  doctorNoToolchain: {
+    en: (langId: string) => `No toolchain definition found for language "${langId}". Skipping.`,
+    ja: (langId: string) => `言語 "${langId}" のツールチェーン定義が見つかりませんでした。スキップします。`
+  },
+  doctorNoAtCoderTarget: {
+    en: (langId: string) => `Could not find target compiler on AtCoder for language "${langId}". Skipping.`,
+    ja: (langId: string) => `言語 "${langId}" のAtCoder上のターゲットコンパイラが見つかりませんでした。スキップします。`
+  },
+  doctorAlreadyMatches: {
+    en: (langId: string, ver: string) => `[${langId}] Already matches AtCoder version: ${ver}. Skipping setup.`,
+    ja: (langId: string, ver: string) => `[${langId}] すでにAtCoderのバージョンと一致しています: ${ver}。セットアップをスキップします。`
+  },
+  setupSkipInstall: {
+    en: 'Skip installation',
+    ja: 'インストールをスキップする'
+  },
+  setupCommandToRun: {
+    en: 'Commands to run:',
+    ja: '実行されるコマンド:'
+  },
+  setupConfigChanges: {
+    en: 'Configuration (settings.json) changes:',
+    ja: '設定ファイル (settings.json) の変更内容:'
+  },
+  setupWarningSudo: {
+    en: '⚠️ WARNING: Some commands require elevated privileges (sudo).',
+    ja: '⚠️ 警告: 一部のコマンドの実行には管理者権限 (sudo) が必要です。'
+  },
+  setupSkippedCommand: {
+    en: (cmd: string) => `Skipped command: ${cmd}`,
+    ja: (cmd: string) => `コマンドをスキップしました: ${cmd}`
+  },
+  setupUninstallHints: {
+    en: 'Uninstall commands (for reference):',
+    ja: 'アンインストールコマンド (参考用):'
+  },
+  cliDebugDesc: {
+    en: 'Enable debug output and stack trace',
+    ja: 'デバッグ出力とスタックトレースを有効にします'
+  },
+  cliYesDesc: {
+    en: 'Skip all prompts and use default choices (non-interactive mode)',
+    ja: 'すべてのプロンプトをスキップし、デフォルトの選択肢を使用します（非インタラクティブモード）'
+  },
+  cliUnexpectedError: {
+    en: 'An unexpected error occurred.',
+    ja: '予期しないエラーが発生しました。'
+  },
+  cliLanguageCmdDesc: {
+    en: 'Manage programming language configurations for the workspace',
+    ja: 'ワークスペースのプログラミング言語設定を管理します'
+  },
+  cliNewAllDesc: {
+    en: 'Download all tasks for the contest',
+    ja: 'コンテストのすべての問題情報をダウンロードします'
+  },
+  cliTestFileDesc: {
+    en: 'Specify the source file to test',
+    ja: 'テスト対象のソースファイルを指定します'
+  },
+  cliPlayFileDesc: {
+    en: 'Specify the source file to run',
+    ja: '実行対象のソースファイルを指定します'
+  },
+  cliSubmitFileDesc: {
+    en: 'Specify the source file to submit',
+    ja: '提出対象のソースファイルを指定します'
+  },
+  cliBundleOutputDesc: {
+    en: 'Output bundle file',
+    ja: 'バンドルファイルの出力先を指定します'
+  },
+  cliRefreshDesc: {
+    en: 'Refresh the AtCoder compiler version cache',
+    ja: 'AtCoderのコンパイラバージョンキャッシュを更新します'
+  },
+  cliSetupDryRunDesc: {
+    en: 'Show setup commands and diffs without running them',
+    ja: '実際に実行せずに、セットアップコマンドと差分（シミュレーション）を表示します'
+  },
+  cliSetupYesDesc: {
+    en: 'Skip all prompts and use default choices',
+    ja: 'すべてのプロンプトをスキップし、デフォルトの選択肢を使用します'
+  },
+  cliDoctorYesDesc: {
+    en: 'Run in non-interactive mode and exit with code 1 if mismatch found',
+    ja: '非インタラクティブモードで実行し、バージョンの不整合が見つかった場合は終了コード1で終了します'
+  },
+  authCookieNotEmpty: {
+    en: 'REVEL_SESSION cookie value cannot be empty.',
+    ja: 'REVEL_SESSION クッキーの値を空にすることはできません。'
+  },
+  authInvalidCookieExtract: {
+    en: 'Could not extract a valid REVEL_SESSION value.',
+    ja: '有効な REVEL_SESSION クッキー値を抽出できませんでした。'
+  },
+  authCookieInvalidOrExpired: {
+    en: (msg: string) => `The provided REVEL_SESSION cookie is invalid or expired: ${msg}`,
+    ja: (msg: string) => `指定された REVEL_SESSION クッキーが無効か期限切れです: ${msg}`
+  },
+  authNoActiveSession: {
+    en: 'No active session. Please log in using "atc login".',
+    ja: '有効なセッションが見つかりません。"atc login" を実行してログインしてください。'
+  },
+  authSessionInvalidOrExpired: {
+    en: 'Session is invalid or expired.',
+    ja: 'セッションが無効か期限切れです。'
+  },
+  authVerifyFailed: {
+    en: (msg: string) => `Failed to verify session: ${msg}`,
+    ja: (msg: string) => `セッションの検証に失敗しました: ${msg}`
   }
 };
 

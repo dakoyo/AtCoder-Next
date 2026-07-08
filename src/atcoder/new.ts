@@ -5,6 +5,7 @@ import { parseContestTasks, TaskInfo } from './parser/contest-tasks';
 import { parseProblemPage, SampleCase } from './parser/problem-page';
 import { loadConfig } from '../config';
 import { AtcError } from '../utils/errors';
+import { getLocale, t } from '../utils/i18n';
 
 export interface SetupResult {
   contestId: string;
@@ -23,7 +24,8 @@ export async function fetchContestTasks(workspaceRoot: string, contestId: string
     const res = await client.get(`/contests/${contestId}/tasks`);
     return parseContestTasks(res.data);
   } catch (err: any) {
-    throw new AtcError(`Failed to fetch tasks for contest "${contestId}": ${err.message}`);
+    const locale = getLocale(workspaceRoot);
+    throw new AtcError(t('newFetchingTasksFailed', locale, contestId, err.message));
   }
 }
 
@@ -41,7 +43,8 @@ export async function setupTask(
   const langConfig = config.languages[langKey];
 
   if (!langConfig) {
-    throw new AtcError(`Language configuration for "${langKey}" not found in settings.json`);
+    const locale = getLocale(workspaceRoot);
+    throw new AtcError(t('langConfigNotFound', locale, langKey));
   }
 
   // Create contest and task directories
@@ -66,7 +69,8 @@ export async function setupTask(
     const res = await client.get(`/contests/${contestId}/tasks/${task.id}`);
     problemHtml = res.data;
   } catch (err: any) {
-    throw new AtcError(`Failed to fetch problem page for "${task.id}": ${err.message}`);
+    const locale = getLocale(workspaceRoot);
+    throw new AtcError(t('newFetchingProblemPageFailed', locale, task.id, err.message));
   }
 
   const preferredProblemLang = config.problemLang || config.lang;
@@ -104,7 +108,8 @@ export async function setupTask(
 
   // Detect code modification / bypass attempt
   if (isContestActive && problemDetails.problemStatementMd) {
-    throw new AtcError('Unexpected problem statement extraction during an active contest. Bypassing contest rules is strictly prohibited.');
+    const locale = getLocale(workspaceRoot);
+    throw new AtcError(t('newStatementBypassProhibited', locale));
   }
 
   if (config.extractProblemStatement) {

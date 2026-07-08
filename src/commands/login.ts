@@ -30,7 +30,7 @@ export async function handleLogin() {
 
 async function performBrowserOrCookieLogin(workspaceRoot: string, locale: Locale): Promise<string> {
   if (!process.stdout.isTTY) {
-    throw new AtcError('Non-interactive environment detected. Interactive login is not supported in this mode.');
+    throw new AtcError(t('loginNonInteractive', locale));
   }
 
   const method = (await p.select({

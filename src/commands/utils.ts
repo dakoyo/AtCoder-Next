@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { loadConfig } from '../config';
 import { AtcError } from '../utils/errors';
+import { getLocale, t } from '../utils/i18n';
 
 export function inferContestIdFromCwd(cwd: string, workspaceRoot: string, contestDir: string): string | null {
   const resolvedContestDir = contestDir ? path.resolve(workspaceRoot, contestDir) : workspaceRoot;
@@ -37,6 +38,7 @@ export function resolveArgs(
   options?: { file?: string; allowNonExistent?: boolean }
 ) {
   const cwd = process.cwd();
+  const locale = getLocale(workspaceRoot);
   const config = loadConfig(workspaceRoot);
   const contestDir = config.contestDir || '';
 
@@ -78,15 +80,15 @@ export function resolveArgs(
   if (!options?.allowNonExistent) {
     if (!contestId) {
       if (path.resolve(cwd) === path.resolve(workspaceRoot)) {
-        throw new AtcError('You are in the workspace root. Please specify a task directory (e.g., "atc test abc300/a").');
+        throw new AtcError(t('utilsInWorkspaceRoot', locale));
       }
-      throw new AtcError('Contest ID could not be determined. Please specify it explicitly.');
+      throw new AtcError(t('utilsNoContestId', locale));
     }
     if (!taskLabel) {
-      throw new AtcError('Task label could not be determined. Please specify it explicitly.');
+      throw new AtcError(t('utilsNoTaskLabel', locale));
     }
     if (!fs.existsSync(resolvedTaskDir)) {
-      throw new AtcError(`Task directory not found: "${resolvedTaskDir}"`);
+      throw new AtcError(t('utilsTaskDirNotFound', locale, resolvedTaskDir));
     }
   }
 

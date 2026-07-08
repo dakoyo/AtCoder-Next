@@ -1,3 +1,5 @@
+import { getSystemLocale } from './i18n';
+
 export class AtcError extends Error {
   constructor(message: string) {
     super(message);
@@ -14,18 +16,21 @@ export class WorkspaceNotFoundError extends AtcError {
 
 export class AuthError extends AtcError {
   constructor(message: string) {
-    super(`Authentication failed: ${message}`);
+    const isJa = getSystemLocale() === 'ja';
+    super(isJa ? `認証に失敗しました: ${message}` : `Authentication failed: ${message}`);
   }
 }
 
 export class ParseError extends AtcError {
   constructor(message: string) {
-    super(`Parsing failed: ${message}`);
+    const isJa = getSystemLocale() === 'ja';
+    super(isJa ? `解析に失敗しました: ${message}` : `Parsing failed: ${message}`);
   }
 }
 
 export class TestError extends AtcError {
   constructor(message: string) {
-    super(`Test execution failed: ${message}`);
+    const isJa = getSystemLocale() === 'ja';
+    super(isJa ? `テスト実行に失敗しました: ${message}` : `Test execution failed: ${message}`);
   }
 }

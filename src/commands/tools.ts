@@ -25,13 +25,13 @@ export async function handleBundle(entryFile: string, options: { output?: string
   }
 
   const s = p.spinner();
-  s.start('Bundling files...');
+  s.start(t('bundlerBundlingFiles', locale));
 
   try {
     bundleFiles(inputs, output, workspaceRoot, extraArgs);
     s.stop(t('bundleSuccess', locale, output));
   } catch (err: any) {
-    s.stop('Failed');
+    s.stop(t('loginVerifyFailed', locale));
     throw err;
   }
 }

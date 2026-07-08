@@ -14,7 +14,7 @@ export async function handleLang(langName: string | undefined) {
   let cleanLang = langName;
   if (!cleanLang) {
     if (!process.stdout.isTTY) {
-      throw new AtcError('Non-interactive environment detected. Please specify the language name as an argument.');
+      throw new AtcError(t('langNonInteractive', locale));
     }
     const choice = await p.select({
       message: t('langSelectMessage', locale),
@@ -55,7 +55,7 @@ export async function handleAddLang(langName: string | undefined) {
 
   if (!targetLang) {
     if (!process.stdout.isTTY) {
-      throw new AtcError('Non-interactive environment detected. Please specify the programming language name as an argument.');
+      throw new AtcError(t('addLangNonInteractive', locale));
     }
     const availablePresets = Object.keys(presets).filter(
       (key) => !config.languages[key]
@@ -110,7 +110,7 @@ export async function handleAddLang(langName: string | undefined) {
     template = preset.template;
   } else {
     if (!process.stdout.isTTY) {
-      throw new AtcError('Non-interactive environment detected. Prompt inputs cannot be requested.');
+      throw new AtcError(t('addLangPromptNonInteractive', locale));
     }
     const extInput = await p.text({
       message: t('addLangEnterExtension', locale, targetLang),
@@ -125,7 +125,7 @@ export async function handleAddLang(langName: string | undefined) {
 
     const buildInput = await p.text({
       message: t('addLangEnterBuildCmd', locale),
-      placeholder: 'e.g. g++ -O2 main.cpp (leave empty if not needed)'
+      placeholder: locale === 'ja' ? '例: g++ -O2 main.cpp (不要な場合は空欄のまま)' : 'e.g. g++ -O2 main.cpp (leave empty if not needed)'
     }) as string;
 
     if (p.isCancel(buildInput)) {
@@ -135,7 +135,7 @@ export async function handleAddLang(langName: string | undefined) {
 
     const runInput = await p.text({
       message: t('addLangEnterRunCmd', locale),
-      placeholder: `e.g. python3 main.py or ./a.out`,
+      placeholder: locale === 'ja' ? '例: python3 main.py や ./a.out' : 'e.g. python3 main.py or ./a.out',
       validate: (val) => (!val.trim() ? t('addLangRunCmdNotEmpty', locale) : undefined)
     }) as string;
 
@@ -161,7 +161,7 @@ export async function handleAddLang(langName: string | undefined) {
       template
     });
   } catch (e: any) {
-    s.stop('Failed');
+    s.stop(t('loginVerifyFailed', locale));
     throw e;
   }
 
@@ -176,11 +176,11 @@ export async function handleDefaultLang(langName: string | undefined) {
   let targetLang = langName;
   if (!targetLang) {
     if (!process.stdout.isTTY) {
-      throw new AtcError('Non-interactive environment detected. Please specify the default language name as an argument.');
+      throw new AtcError(t('defaultLangNonInteractive', locale));
     }
     const configuredLangs = Object.keys(config.languages);
     if (configuredLangs.length === 0) {
-      p.log.error(pc.red('No languages configured in this workspace. Please run "atc init" or "atc add-lang".'));
+      p.log.error(pc.red(t('defaultLangNoLanguages', locale)));
       process.exit(1);
     }
 

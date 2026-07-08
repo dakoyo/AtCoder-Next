@@ -33,9 +33,9 @@ export async function handlePlay(
     const buildRes = await runBuild(build, resolvedTaskDir);
     if (buildRes.code !== 0) {
       buildSpinner.stop(pc.red(t('playCompilationFailed', locale)));
-      console.error(pc.red('\n──────────────────────── Compilation Error ────────────────────────'));
+      console.error(pc.red(`\n${t('testHeaderCompileError', locale)}`));
       console.error(buildRes.stderr.trim());
-      console.error(pc.red('───────────────────────────────────────────────────────────────────\n'));
+      console.error(pc.red(`${t('testBorder', locale)}\n`));
       process.exit(1);
     }
     buildSpinner.stop(t('playCompiled', locale));
@@ -55,17 +55,17 @@ export async function handlePlay(
 
   child.on('error', (err) => {
     console.log(pc.cyan('───────────────────────────────────────────────────────────────────'));
-    console.error(pc.red(`Failed to start the process: ${err.message}`));
+    console.error(pc.red(t('playRunningFailed', locale, err.message)));
     process.exit(1);
   });
 
   child.on('exit', (code, signal) => {
     console.log(pc.cyan('───────────────────────────────────────────────────────────────────'));
     if (signal) {
-      p.outro(pc.yellow(`Process terminated with signal ${signal}`));
+      p.outro(pc.yellow(t('playTerminatedSignal', locale, signal)));
       process.exit(1);
     } else if (code !== 0) {
-      p.outro(pc.red(`Process exited with code ${code}`));
+      p.outro(pc.red(t('playExitedCode', locale, code ?? 1)));
       process.exit(code ?? 1);
     } else {
       p.outro(pc.green(t('playFinished', locale)));

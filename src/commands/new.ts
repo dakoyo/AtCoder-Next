@@ -42,7 +42,7 @@ export async function handleNew(contestId: string, taskLabel: string | undefined
     selectedTasks = [matched];
   } else {
     if (!process.stdout.isTTY) {
-      p.log.warn('Non-interactive environment detected. Setting up all tasks automatically.');
+      p.log.warn(t('newNonInteractiveWarn', locale));
       selectedTasks = tasks;
     } else {
       const taskOptions = tasks.map(t => ({

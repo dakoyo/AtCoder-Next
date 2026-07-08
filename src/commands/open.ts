@@ -12,7 +12,7 @@ export async function handleOpen(contestIdArg: string | undefined, taskLabelArg:
   const { taskLabel, contestId } = resolveArgs(workspaceRoot, contestIdArg, taskLabelArg, { allowNonExistent: true });
 
   if (!contestId) {
-    throw new AtcError('Contest ID could not be determined. Please specify it explicitly (e.g., "atc open abc300").');
+    throw new AtcError(t('openNoContestId', locale));
   }
 
   const s = p.spinner();
