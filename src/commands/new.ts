@@ -15,9 +15,6 @@ export async function handleNew(contestId: string, taskLabel: string | undefined
   const contestParentDir = config.contestDir ? path.join(workspaceRoot, config.contestDir) : workspaceRoot;
   
   const contestDir = path.join(contestParentDir, contestId);
-  if (fs.existsSync(contestDir)) {
-    throw new AtcError(t('newContestDirExists', locale, contestId));
-  }
 
   p.intro(pc.cyan(t('newIntro', locale, contestId)));
 
@@ -66,10 +63,29 @@ export async function handleNew(contestId: string, taskLabel: string | undefined
     }
   }
 
+  // Check task directory existences if contest directory already exists
+  if (fs.existsSync(contestDir)) {
+    const allExist = selectedTasks.every(tObj => {
+      const taskDir = path.join(contestDir, tObj.label);
+      return fs.existsSync(taskDir);
+    });
+
+    if (allExist) {
+      throw new AtcError(t('newAllTasksAlreadyExist', locale, contestId));
+    }
+  }
+
   const setupSpinner = p.spinner();
   let hasSkippedProblemStatement = false;
+  let successfulSetupCount = 0;
   for (let i = 0; i < selectedTasks.length; i++) {
     const tObj = selectedTasks[i];
+    const taskDir = path.join(contestDir, tObj.label);
+
+    if (fs.existsSync(taskDir)) {
+      p.log.error(pc.red(t('newTaskDirExists', locale, tObj.label.toUpperCase())));
+      continue;
+    }
 
     setupSpinner.start(t('newSettingUpTask', locale, tObj.label.toUpperCase(), tObj.id));
     const res = await setupTask(workspaceRoot, contestId, tObj);
@@ -77,9 +93,10 @@ export async function handleNew(contestId: string, taskLabel: string | undefined
     if (res.skippedProblemStatement) {
       hasSkippedProblemStatement = true;
     }
+    successfulSetupCount++;
   }
 
-  p.outro(pc.green(t('newScaffoldingComplete', locale, selectedTasks.length)));
+  p.outro(pc.green(t('newScaffoldingComplete', locale, successfulSetupCount)));
 
   if (hasSkippedProblemStatement) {
     p.log.warn(pc.yellow(t('newStatementSkippedContestActiveTitle', locale)));

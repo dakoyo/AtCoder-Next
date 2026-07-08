@@ -1162,6 +1162,14 @@ export const MESSAGES = {
   authVerifyFailed: {
     en: (msg: string) => `Failed to verify session: ${msg}`,
     ja: (msg: string) => `セッションの検証に失敗しました: ${msg}`
+  },
+  newAllTasksAlreadyExist: {
+    en: (contestId: string) => `All specified tasks for contest "${contestId}" are already set up.`,
+    ja: (contestId: string) => `指定されたコンテスト "${contestId}" の問題はすべてセットアップ済みです。`
+  },
+  newTaskDirExists: {
+    en: (label: string) => `Task "${label}" is already set up. Skipping.`,
+    ja: (label: string) => `問題 "${label}" は既にセットアップされています。スキップします。`
   }
 };
 
