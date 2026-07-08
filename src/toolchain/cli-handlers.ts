@@ -285,26 +285,26 @@ export async function runDoctor(options: { languages?: string[]; refresh?: boole
   const colWidths = { lang: 10, tool: 12, local: 16, target: 20, status: 12 };
   
   const headerRow = 
-    'Language'.padEnd(colWidths.lang) + 
-    'Compiler'.padEnd(colWidths.tool) + 
-    'Local Version'.padEnd(colWidths.local) + 
-    'AtCoder Version'.padEnd(colWidths.target) + 
-    'Status';
+    (displayLang === 'ja' ? '言語' : 'Language').padEnd(colWidths.lang) + 
+    (displayLang === 'ja' ? 'コンパイラ' : 'Compiler').padEnd(colWidths.tool) + 
+    (displayLang === 'ja' ? 'ローカルバージョン' : 'Local Version').padEnd(colWidths.local) + 
+    (displayLang === 'ja' ? 'AtCoderバージョン' : 'AtCoder Version').padEnd(colWidths.target) + 
+    (displayLang === 'ja' ? '状態' : 'Status');
   tableContent += pc.bold(headerRow) + '\n';
   tableContent += '-'.repeat(colWidths.lang + colWidths.tool + colWidths.local + colWidths.target + colWidths.status) + '\n';
 
   for (const r of results) {
     let statusStr = '';
     if (r.status === 'match') {
-      statusStr = pc.green('Match');
+      statusStr = pc.green(displayLang === 'ja' ? '一致' : 'Match');
     } else if (r.status === 'warning') {
-      statusStr = pc.yellow('Warning');
+      statusStr = pc.yellow(displayLang === 'ja' ? '警告' : 'Warning');
     } else if (r.status === 'optional-missing') {
-      statusStr = pc.gray('Not Installed');
+      statusStr = pc.gray(displayLang === 'ja' ? '未インストール' : 'Not Installed');
     } else if (r.status === 'optional-mismatch') {
-      statusStr = pc.yellow('Mismatch');
+      statusStr = pc.yellow(displayLang === 'ja' ? '不一致' : 'Mismatch');
     } else {
-      statusStr = pc.red(r.localVersion === 'Not Found' ? 'Not Installed' : 'Mismatch');
+      statusStr = pc.red(r.localVersion === 'Not Found' ? (displayLang === 'ja' ? '未インストール' : 'Not Installed') : (displayLang === 'ja' ? '不一致' : 'Mismatch'));
     }
     
     const row = 
@@ -453,14 +453,14 @@ export async function runSetup(options: SetupOptions = {}) {
     }
 
     if (!toolchain) {
-      p.log.warn(`No toolchain definition found for language "${langId}". Skipping.`);
+      p.log.warn(t('doctorNoToolchain' as any, displayLang, langId));
       continue;
     }
 
     const target = findAtCoderTarget(toolchain.id, langId, compilers);
     
     if (!target) {
-      p.log.warn(`Could not find target compiler on AtCoder for language "${langId}". Skipping.`);
+      p.log.warn(t('doctorNoAtCoderTarget' as any, displayLang, langId));
       continue;
     }
 
@@ -470,7 +470,7 @@ export async function runSetup(options: SetupOptions = {}) {
     
     if (status === 'match') {
       if (yes) {
-        p.log.info(`[${langId}] Already matches AtCoder version: ${localVer}. Skipping setup.`);
+        p.log.info(t('doctorAlreadyMatches' as any, displayLang, langId, localVer));
         continue;
       }
       const proceed = assertNotCancelled(
@@ -503,7 +503,7 @@ export async function runSetup(options: SetupOptions = {}) {
             ? `Version Manager (${toolchain.versionManager?.id}) - Recommended` 
             : `Package Manager (${p.steps[0]?.command.split(' ')[0] || 'OS' })`
         }));
-        choices.push({ value: 'skip', label: 'Skip installation' });
+        choices.push({ value: 'skip', label: t('setupSkipInstall' as any, displayLang) });
 
         const choice = assertNotCancelled(
           await p.select({
@@ -582,7 +582,7 @@ export async function runSetup(options: SetupOptions = {}) {
   let confirmNote = '';
   
   if (allSteps.length > 0) {
-    confirmNote += pc.bold('Commands to run:') + '\n';
+    confirmNote += pc.bold(t('setupCommandToRun' as any, displayLang)) + '\n';
     for (const item of allSteps) {
       confirmNote += `  [${item.langId}] ${pc.cyan(item.step.command)}`;
       if (item.step.description) {
@@ -594,7 +594,7 @@ export async function runSetup(options: SetupOptions = {}) {
   }
 
   if (settingsUpdates.length > 0) {
-    confirmNote += pc.bold('Configuration (settings.json) changes:') + '\n';
+    confirmNote += pc.bold(t('setupConfigChanges' as any, displayLang)) + '\n';
     for (const update of settingsUpdates) {
       confirmNote += `  [${update.langId}]:\n`;
       const diff = generateDiff(update.oldConfig, update.newConfig);
@@ -603,7 +603,7 @@ export async function runSetup(options: SetupOptions = {}) {
   }
 
   if (requiresSudo) {
-    confirmNote += pc.bold(pc.red('⚠️ WARNING: Some commands require elevated privileges (sudo).')) + '\n';
+    confirmNote += pc.bold(pc.red(t('setupWarningSudo' as any, displayLang))) + '\n';
   }
 
   printCustomBlock(t('setupExecutionPlanTitle' as any, displayLang), confirmNote);
@@ -662,7 +662,7 @@ export async function runSetup(options: SetupOptions = {}) {
         }
 
         if (action === 'skip') {
-          p.log.warn(`Skipped command: ${step.command}`);
+          p.log.warn(t('setupSkippedCommand' as any, displayLang, step.command));
           failed = false;
           break;
         }
@@ -712,7 +712,7 @@ export async function runSetup(options: SetupOptions = {}) {
   let outroMsg = t('setupOutroSuccess' as any, displayLang, installLogPath);
   
   if (uninstallHints.length > 0) {
-    outroMsg += '\n\n' + pc.bold('Uninstall commands (for reference):') + '\n';
+    outroMsg += '\n\n' + pc.bold(t('setupUninstallHints' as any, displayLang)) + '\n';
     for (const hint of uninstallHints) {
       outroMsg += `  ${pc.gray(hint)}\n`;
     }

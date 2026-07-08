@@ -5,6 +5,8 @@ import * as os from 'os';
 import { bundleFiles } from './bundler';
 import { AtcError } from './errors';
 
+process.env.ATC_LOCALE = 'en';
+
 describe('bundler', () => {
   let tempDir: string;
 

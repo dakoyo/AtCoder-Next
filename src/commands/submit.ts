@@ -37,7 +37,7 @@ export async function handleSubmit(
   const taskInfo = tasks.find(t => t.label.toLowerCase() === taskLabel.toLowerCase());
   
   if (!taskInfo) {
-    throw new AtcError(`Task label "${taskLabel}" not found in contest "${contestId}".`);
+    throw new AtcError(t('submitTaskDirNotFound', locale, taskLabel, contestId));
   }
   taskId = taskInfo.id;
 
@@ -89,9 +89,9 @@ export async function handleSubmit(
 
   if (testRes.compileError) {
     p.log.error(pc.red(t('testCompilationFailed', locale)));
-    console.error(pc.red('\n──────────────────────── Compilation Error ────────────────────────'));
+    console.error(pc.red(`\n${t('testHeaderCompileError', locale)}`));
     console.error(testRes.compileError.trim());
-    console.error(pc.red('───────────────────────────────────────────────────────────────────\n'));
+    console.error(pc.red(`${t('testBorder', locale)}\n`));
     process.exit(1);
   }
 
@@ -105,9 +105,9 @@ export async function handleSubmit(
     const isYes = !process.stdout.isTTY || process.env.ATC_YES === 'true';
     if (isYes) {
       if (process.env.ATC_YES === 'true') {
-        p.log.warn('Proceeding with submission automatically due to --yes option.');
+        p.log.warn(t('submitYesProceed', locale));
       } else {
-        p.log.error('Aborting submission automatically in non-interactive environment due to test failures.');
+        p.log.error(t('submitAbortingNonInteractive', locale));
         process.exit(1);
       }
     } else {
@@ -143,7 +143,7 @@ export async function handleSubmit(
                         err.message.includes(t('submitRejected', locale));
 
     if (isTurnstile) {
-      submitSpinner.stop(pc.yellow('Manual Submit Required'));
+      submitSpinner.stop(pc.yellow(t('submitManualRequired', locale)));
       
       const submitUrl = `https://atcoder.jp/contests/${contestId}/submit?taskScreenName=${taskId}`;
       
@@ -182,7 +182,7 @@ export async function handleSubmit(
 
       process.exit(0);
     } else {
-      submitSpinner.stop('Failed');
+      submitSpinner.stop(t('loginVerifyFailed', locale));
       p.log.error(pc.red(err.message));
       process.exit(1);
     }
@@ -202,7 +202,7 @@ export async function handleSubmit(
       const detailRes = await client.get(subDetails.url);
       const status = parseSubmissionStatus(detailRes.data);
       
-      pollSpinner.message(`Judge Status: ${pc.yellow(pc.bold(status.status))}`);
+      pollSpinner.message(t('submitPollingStatus', locale, pc.yellow(pc.bold(status.status))));
 
       if (status.isCompleted) {
         completed = true;
@@ -229,7 +229,7 @@ export async function handleSubmit(
         currentInterval = Math.min(currentInterval * 1.5, 10000);
       }
     } catch (e: any) {
-      pollSpinner.message(`Polling status... (network retry: ${e.message})`);
+      pollSpinner.message(t('submitNetworkRetry', locale, e.message));
       currentInterval = Math.min(currentInterval * 1.5, 10000);
     }
     await new Promise(resolve => setTimeout(resolve, currentInterval));
@@ -240,5 +240,5 @@ export async function handleSubmit(
     p.log.warn(t('submitTimeoutWarn', locale, subDetails.url));
   }
 
-  p.outro(pc.green('Done.'));
+  p.outro(pc.green(t('submitDone', locale)));
 }

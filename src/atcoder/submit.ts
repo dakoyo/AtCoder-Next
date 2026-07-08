@@ -29,19 +29,19 @@ export async function submitTask(
   const taskDir = path.join(contestParentDir, contestId, taskLabel);
 
   if (!fs.existsSync(taskDir)) {
-    throw new AtcError(`Task directory "${taskLabel}" not found in contest "${contestId}".`);
+    throw new AtcError(t('submitTaskDirNotFound', locale, taskLabel, contestId));
   }
 
   const { codeFile, langConfig } = detectCodeFile(workspaceRoot, taskDir, config, fileArg);
 
   if (!langConfig.submitFile || langConfig.submitFile.trim() === '') {
-    throw new AtcError(`No 'submitFile' specified in your language configuration. Setting 'submitFile' is required for submission.`);
+    throw new AtcError(t('submitNoSubmitFile', locale));
   }
 
   let submitFileName = resolvePlaceholder(langConfig.submitFile, codeFile);
   const candidatePath = path.join(taskDir, submitFileName);
   if (!fs.existsSync(candidatePath)) {
-    throw new AtcError(`Submit file "${submitFileName}" specified in language configuration was not found. Did the build command fail?`);
+    throw new AtcError(t('submitFileNotFound', locale, submitFileName));
   }
 
   const codePath = path.join(taskDir, submitFileName);
@@ -61,14 +61,14 @@ export async function submitTask(
     if (err.response?.status === 403) {
       throw new AtcError(t('submitTurnstileDetected', locale));
     }
-    throw new AtcError(`Failed to access AtCoder submit page: ${err.message}`);
+    throw new AtcError(t('submitAccessPageFailed', locale, err.message));
   }
 
   const $ = cheerio.load(submitPageHtml);
   
   const csrfToken = $('input[name="csrf_token"]').val();
   if (!csrfToken) {
-    throw new AtcError('Could not find CSRF token. Make sure you are logged in (run "atc login").');
+    throw new AtcError(t('submitNoCsrfToken', locale));
   }
 
   let selectElement = $(`#select-lang-${taskId} select`);
@@ -149,7 +149,7 @@ export async function submitTask(
     } else if (options.length > 0) {
       selectedLangId = options[0].id;
     } else {
-      throw new AtcError('No language options available on AtCoder submit page.');
+      throw new AtcError(t('submitNoLanguagesOnPage', locale));
     }
   }
 
@@ -209,7 +209,7 @@ export async function submitTask(
     });
 
     if (!submissionId) {
-      throw new AtcError('Submission succeeded but could not retrieve the submission ID.');
+      throw new AtcError(t('submitNoSubmissionId', locale));
     }
 
     return {
@@ -227,6 +227,6 @@ export async function submitTask(
     if (err.response?.status === 403) {
       throw new AtcError(t('submitTurnstileDetected', locale));
     }
-    throw new AtcError(`Failed to submit code: ${err.message}`);
+    throw new AtcError(t('submitFailedWithErr', locale, err.message));
   }
 }

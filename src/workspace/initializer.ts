@@ -3,6 +3,8 @@ import * as path from 'path';
 import { saveConfig, Config, LanguageConfig, loadConfig, getConfigPath } from '../config';
 import { AtcError } from '../utils/errors';
 
+import { getLocale, t } from '../utils/i18n';
+
 import { getLanguagePresets, saveLanguagePreset } from './presets';
 
 export interface InitOptions {
@@ -159,7 +161,8 @@ export function addLanguage(
   const cleanLang = langName.trim().toLowerCase();
 
   if (config.languages[cleanLang]) {
-    throw new AtcError(`Language "${cleanLang}" is already configured.`);
+    const locale = getLocale(workspaceRoot);
+    throw new AtcError(t('addLangAlreadyExists', locale, cleanLang));
   }
 
   const presets = getLanguagePresets();

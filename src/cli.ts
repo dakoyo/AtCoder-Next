@@ -38,8 +38,8 @@ program
   .name('atc')
   .description('AtCoder Next')
   .version(pkg.version)
-  .option('--debug', 'Enable debug output and stack trace')
-  .option('-y, --yes', 'Skip all prompts and use default choices (non-interactive mode)');
+  .option('--debug', t('cliDebugDesc', locale))
+  .option('-y, --yes', t('cliYesDesc', locale));
 
 function handleAction(fn: (...args: any[]) => Promise<void>) {
   return async (...args: any[]) => {
@@ -50,7 +50,7 @@ function handleAction(fn: (...args: any[]) => Promise<void>) {
     try {
       await fn(...args);
     } catch (err: any) {
-      let errMsg = err.message || 'An unexpected error occurred.';
+      let errMsg = err.message || t('cliUnexpectedError', locale);
       if (err instanceof WorkspaceNotFoundError) {
         errMsg = t('workspaceNotFound', locale);
       } else if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || errMsg.includes('timeout')) {
@@ -92,7 +92,7 @@ program
 program
   .command('new <contest> [task]')
   .description(h('descNew'))
-  .option('-a, --all', 'Download all tasks for the contest')
+  .option('-a, --all', t('cliNewAllDesc', locale))
   .action(handleAction(handleNew));
 
 program
@@ -104,21 +104,21 @@ program
   .command('test [contestIdOrTask] [taskLabel]')
   .alias('t')
   .description(h('descTest'))
-  .option('-f, --file <file>', 'Specify the source file to test')
+  .option('-f, --file <file>', t('cliTestFileDesc', locale))
   .action(handleAction(handleTest));
 
 program
   .command('play [contestIdOrTask] [taskLabel]')
   .alias('p')
   .description(h('descPlay'))
-  .option('-f, --file <file>', 'Specify the source file to run')
+  .option('-f, --file <file>', t('cliPlayFileDesc', locale))
   .action(handleAction(handlePlay));
 
 program
   .command('submit [contestIdOrTask] [taskLabel]')
   .alias('s')
   .description(h('descSubmit'))
-  .option('-f, --file <file>', 'Specify the source file to submit')
+  .option('-f, --file <file>', t('cliSubmitFileDesc', locale))
   .action(handleAction(handleSubmit));
 
 program
@@ -129,7 +129,7 @@ program
 const languageCmd = program
   .command('language')
   .alias('l')
-  .description('Manage programming language configurations for the workspace');
+  .description(t('cliLanguageCmdDesc', locale));
 
 languageCmd
   .command('add [langName]')
@@ -149,7 +149,7 @@ const toolsCmd = program
 toolsCmd
   .command('bundle <entryFile>')
   .description(h('descBundle'))
-  .option('-o, --output <file>', 'Output bundle file')
+  .option('-o, --output <file>', t('cliBundleOutputDesc', locale))
   .addHelpText('after', `
 Examples:
   $ atc tools bundle main.cpp -o bundle.cpp
@@ -165,16 +165,16 @@ Note:
 toolsCmd
   .command('doctor [languages...]')
   .description(h('descDoctor' as any))
-  .option('--refresh', 'Refresh the AtCoder compiler version cache')
-  .option('--yes', 'Run in non-interactive mode and exit with code 1 if mismatch found')
+  .option('--refresh', t('cliRefreshDesc', locale))
+  .option('--yes', t('cliDoctorYesDesc', locale))
   .action(handleAction(handleDoctor));
 
 toolsCmd
   .command('setup [languages...]')
   .description(h('descSetup' as any))
-  .option('--refresh', 'Refresh the AtCoder compiler version cache')
-  .option('--dry-run', 'Show setup commands and diffs without running them')
-  .option('--yes', 'Skip all prompts and use default choices')
+  .option('--refresh', t('cliRefreshDesc', locale))
+  .option('--dry-run', t('cliSetupDryRunDesc', locale))
+  .option('--yes', t('cliSetupYesDesc', locale))
   .action(handleAction(handleSetup));
 
 program.parse(process.argv);

@@ -86,9 +86,9 @@ export async function handleTest(
 
   if (testRes.compileError) {
     p.log.error(pc.red(t('testCompilationFailed', locale)));
-    console.error(pc.red('\n──────────────────────── Compilation Error ────────────────────────'));
+    console.error(pc.red(`\n${t('testHeaderCompileError', locale)}`));
     console.error(testRes.compileError.trim());
-    console.error(pc.red('───────────────────────────────────────────────────────────────────\n'));
+    console.error(pc.red(`${t('testBorder', locale)}\n`));
     process.exit(1);
   }
 
@@ -104,27 +104,27 @@ export async function handleTest(
     const memory = res.memoryByte !== undefined ? `, Memory: ${formatMemory(res.memoryByte)}` : '';
 
     if (res.status === 'AC') {
-      p.log.success(`${pc.green(pc.bold('[AC]'))} ${label}: Passed (${duration}${memory})`);
+      p.log.success(t('testStatusAC', locale, label, duration, memory));
     } else if (res.status === 'WA') {
       allPassed = false;
-      p.log.error(`${pc.red(pc.bold('[WA]'))} ${label}: Failed (${duration}${memory})`);
+      p.log.error(t('testStatusWA', locale, label, duration, memory));
       console.log(`   ${pc.gray('┌────────────────────────────────────────────────────────')}`);
-      console.log(`   ${pc.gray('│')} ${pc.bold('Expected Output:')}`);
+      console.log(`   ${pc.gray('│')} ${pc.bold(t('testExpectedOutput', locale))}`);
       console.log(formatOutputLines(res.expectedOutput, res.firstDiffLine).join('\n'));
       console.log(`   ${pc.gray('├────────────────────────────────────────────────────────')}`);
-      console.log(`   ${pc.gray('│')} ${pc.bold('Actual Output:')}`);
+      console.log(`   ${pc.gray('│')} ${pc.bold(t('testActualOutput', locale))}`);
       console.log(formatOutputLines(res.actualOutput, res.firstDiffLine).join('\n'));
       console.log(`   ${pc.gray('└────────────────────────────────────────────────────────')}`);
     } else if (res.status === 'RE') {
       allPassed = false;
-      p.log.error(`${pc.red(pc.bold('[RE]'))} ${label}: Runtime Error (${duration}${memory})`);
+      p.log.error(t('testStatusRE', locale, label, duration, memory));
       console.log(`   ${pc.gray('┌────────────────────────────────────────────────────────')}`);
-      console.log(`   ${pc.gray('│')} ${pc.bold('Error Output:')}`);
+      console.log(`   ${pc.gray('│')} ${pc.bold(t('testErrorOutput', locale))}`);
       console.log(formatErrorOutputLines(res.errorOutput || '').join('\n'));
       console.log(`   ${pc.gray('└────────────────────────────────────────────────────────')}`);
     } else if (res.status === 'TLE') {
       allPassed = false;
-      p.log.error(`${pc.red(pc.bold('[TLE]'))} ${label}: Time Limit Exceeded (Limit: ${timeLimitMs} ms)`);
+      p.log.error(t('testStatusTLE', locale, label, timeLimitMs));
     }
   }
 

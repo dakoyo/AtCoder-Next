@@ -5,6 +5,7 @@ import { findWorkspaceRoot } from '../workspace/finder';
 import { loadConfig, Config, LanguageConfig } from '../config';
 import { compareOutput } from './diff';
 import { AtcError } from '../utils/errors';
+import { getLocale, t } from '../utils/i18n';
 
 // Windows Win32 FFI for Memory measurements via koffi
 let koffi: any = null;
@@ -70,6 +71,7 @@ export interface RunAllTestsResult {
  */
 export function resolveTaskDirectory(workspaceRoot: string, taskArg?: string): string {
   const cwd = process.cwd();
+  const locale = getLocale(workspaceRoot);
   
   if (taskArg) {
     const pathFromCwd = path.resolve(cwd, taskArg);
@@ -95,11 +97,11 @@ export function resolveTaskDirectory(workspaceRoot: string, taskArg?: string): s
       return labelPath;
     }
 
-    throw new AtcError(`Task directory "${taskArg}" not found.`);
+    throw new AtcError(t('runnerTaskDirNotFound', locale, taskArg));
   }
 
   if (path.resolve(cwd) === path.resolve(workspaceRoot)) {
-    throw new AtcError('You are in the workspace root. Please specify a task directory (e.g., "atc test abc300/a").');
+    throw new AtcError(t('utilsInWorkspaceRoot', locale));
   }
 
   return cwd;
@@ -114,10 +116,11 @@ export function detectCodeFile(
   config: Config,
   fileArg?: string
 ): { codeFile: string; langKey: string; langConfig: LanguageConfig } {
+  const locale = getLocale(workspaceRoot);
   if (fileArg) {
     const fullPath = path.resolve(taskDir, fileArg);
     if (!fs.existsSync(fullPath)) {
-      throw new AtcError(`Specified source file "${fileArg}" not found in "${taskDir}"`);
+      throw new AtcError(t('runnerSpecifiedFileNotFound', locale, fileArg, taskDir));
     }
     
     const ext = path.extname(fileArg).slice(1);
@@ -126,7 +129,7 @@ export function detectCodeFile(
         return { codeFile: fileArg, langKey: key, langConfig };
       }
     }
-    throw new AtcError(`No language configuration found for file extension ".${ext}"`);
+    throw new AtcError(t('runnerNoLangConfig', locale, ext));
   }
 
   const files = fs.readdirSync(taskDir);
@@ -147,7 +150,7 @@ export function detectCodeFile(
     }
   }
 
-  throw new AtcError(`No source files found in "${taskDir}" matching configured languages.`);
+  throw new AtcError(t('runnerNoSourceFiles', locale, taskDir));
 }
 
 /**
@@ -499,8 +502,9 @@ export async function runAllTests(
   const testDirName = config.testDirName || 'tests';
   const testDir = path.join(taskDir, testDirName);
   
+  const locale = getLocale(workspaceRoot);
   if (!fs.existsSync(testDir) || !fs.statSync(testDir).isDirectory()) {
-    throw new AtcError(`Test directory "${testDir}" not found.`);
+    throw new AtcError(t('runnerTestDirNotFound', locale, testDir));
   }
 
   const files = fs.readdirSync(testDir);
