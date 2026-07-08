@@ -165,10 +165,6 @@ export const MESSAGES = {
     en: (lang: string) => `Created .atcoder-next/ configuration (default language: ${lang}) and template folders.`,
     ja: (lang: string) => `.atcoder-next/ 設定ファイル（デフォルト言語: ${lang}）とテンプレートフォルダを作成しました。`
   },
-  initGitignoreUpdated: {
-    en: 'Added .atcoder-next/session.json to .gitignore to keep your credentials safe.',
-    ja: '認証情報を安全に保つため、.atcoder-next/session.json を .gitignore に追加しました。'
-  },
   initOutro: {
     en: 'Initialization complete! You can now run "atc login".',
     ja: '初期化が完了しました！ "atc login" を実行できます。'
@@ -1162,6 +1158,14 @@ export const MESSAGES = {
   authVerifyFailed: {
     en: (msg: string) => `Failed to verify session: ${msg}`,
     ja: (msg: string) => `セッションの検証に失敗しました: ${msg}`
+  },
+  newAllTasksAlreadyExist: {
+    en: (contestId: string) => `All specified tasks for contest "${contestId}" are already set up.`,
+    ja: (contestId: string) => `指定されたコンテスト "${contestId}" の問題はすべてセットアップ済みです。`
+  },
+  newTaskDirExists: {
+    en: (label: string) => `Task "${label}" is already set up. Skipping.`,
+    ja: (label: string) => `問題 "${label}" は既にセットアップされています。スキップします。`
   }
 };
 
