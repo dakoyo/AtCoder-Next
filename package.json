@@ -1,6 +1,6 @@
 {
   "name": "atcoder-next",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "AtCoder Next CLI (Local-first)",
   "main": "dist/cli.js",
   "bin": {
