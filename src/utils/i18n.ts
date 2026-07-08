@@ -1178,9 +1178,18 @@ export const t = (key: keyof typeof MESSAGES, locale: Locale, ...args: any[]): s
   return msg;
 };
 
-export const h = (key: keyof typeof MESSAGES): string => {
+export const h = (key: keyof typeof MESSAGES, locale?: Locale): string => {
   const item = MESSAGES[key];
   if (!item) return String(key);
+  if (locale) {
+    const msg = (item as any)[locale];
+    if (msg) {
+      if (typeof msg === 'function') {
+        return msg('(args)');
+      }
+      return msg;
+    }
+  }
   const en = (item as any)['en'] || '';
   const ja = (item as any)['ja'] || '';
   if (typeof en === 'function') {

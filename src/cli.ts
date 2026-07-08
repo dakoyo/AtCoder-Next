@@ -71,59 +71,59 @@ function handleAction(fn: (...args: any[]) => Promise<void>) {
 
 program
   .command('init [dir]')
-  .description(h('descInit'))
+  .description(h('descInit', locale))
   .action(handleAction(handleInit));
 
 program
   .command('login')
-  .description(h('descLogin'))
+  .description(h('descLogin', locale))
   .action(handleAction(handleLogin));
 
 program
   .command('logout')
-  .description(h('descLogout'))
+  .description(h('descLogout', locale))
   .action(handleAction(handleLogout));
 
 program
   .command('whoami')
-  .description(h('descWhoami'))
+  .description(h('descWhoami', locale))
   .action(handleAction(handleWhoami));
 
 program
   .command('new <contest> [task]')
-  .description(h('descNew'))
+  .description(h('descNew', locale))
   .option('-a, --all', t('cliNewAllDesc', locale))
   .action(handleAction(handleNew));
 
 program
   .command('open [contestId] [taskLabel]')
-  .description(h('descOpen'))
+  .description(h('descOpen', locale))
   .action(handleAction(handleOpen));
 
 program
   .command('test [contestIdOrTask] [taskLabel]')
   .alias('t')
-  .description(h('descTest'))
+  .description(h('descTest', locale))
   .option('-f, --file <file>', t('cliTestFileDesc', locale))
   .action(handleAction(handleTest));
 
 program
   .command('play [contestIdOrTask] [taskLabel]')
   .alias('p')
-  .description(h('descPlay'))
+  .description(h('descPlay', locale))
   .option('-f, --file <file>', t('cliPlayFileDesc', locale))
   .action(handleAction(handlePlay));
 
 program
   .command('submit [contestIdOrTask] [taskLabel]')
   .alias('s')
-  .description(h('descSubmit'))
+  .description(h('descSubmit', locale))
   .option('-f, --file <file>', t('cliSubmitFileDesc', locale))
   .action(handleAction(handleSubmit));
 
 program
   .command('lang [langName]')
-  .description(h('descLang'))
+  .description(h('descLang', locale))
   .action(handleAction(handleLang));
 
 const languageCmd = program
@@ -133,22 +133,22 @@ const languageCmd = program
 
 languageCmd
   .command('add [langName]')
-  .description(h('descAddLang'))
+  .description(h('descAddLang', locale))
   .action(handleAction(handleAddLang));
 
 languageCmd
   .command('default [langName]')
-  .description(h('descDefaultLang'))
+  .description(h('descDefaultLang', locale))
   .action(handleAction(handleDefaultLang));
 
 const toolsCmd = program
   .command('tools')
   .alias('tl')
-  .description(h('descTools'));
+  .description(h('descTools', locale));
 
 toolsCmd
   .command('bundle <entryFile>')
-  .description(h('descBundle'))
+  .description(h('descBundle', locale))
   .option('-o, --output <file>', t('cliBundleOutputDesc', locale))
   .addHelpText('after', `
 Examples:
@@ -164,14 +164,14 @@ Note:
 
 toolsCmd
   .command('doctor [languages...]')
-  .description(h('descDoctor' as any))
+  .description(h('descDoctor' as any, locale))
   .option('--refresh', t('cliRefreshDesc', locale))
   .option('--yes', t('cliDoctorYesDesc', locale))
   .action(handleAction(handleDoctor));
 
 toolsCmd
   .command('setup [languages...]')
-  .description(h('descSetup' as any))
+  .description(h('descSetup' as any, locale))
   .option('--refresh', t('cliRefreshDesc', locale))
   .option('--dry-run', t('cliSetupDryRunDesc', locale))
   .option('--yes', t('cliSetupYesDesc', locale))
