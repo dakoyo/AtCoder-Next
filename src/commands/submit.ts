@@ -132,6 +132,11 @@ export async function handleSubmit(
   try {
     subDetails = await submitTask(workspaceRoot, contestId, taskId, taskLabel, resolvedFile);
     submitSpinner.stop(t('submitSuccess', locale, subDetails.submissionId));
+    try {
+      const submissionUrl = `https://atcoder.jp/contests/${contestId}/submissions/${subDetails.submissionId}`;
+      const { openUrl } = require('../utils/open');
+      openUrl(submissionUrl);
+    } catch {}
   } catch (err: any) {
     const isTurnstile = err.message.includes('Turnstile') ||
                         err.message.includes('cf-challenge') ||
