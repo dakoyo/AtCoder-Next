@@ -615,8 +615,8 @@ export const MESSAGES = {
     ja: '新しいデフォルトのプログラミング言語を選択してください:'
   },
   defaultLangNotConfigured: {
-    en: (lang: string) => `Language "${lang}" is not configured in this workspace. Please add it first using "atc add-lang".`,
-    ja: (lang: string) => `言語 "${lang}" はこのワークスペースで設定されていません。先に "atc add-lang" で追加してください。`
+    en: (lang: string) => `Language "${lang}" is not configured in this workspace. Please add it first using "atc language add".`,
+    ja: (lang: string) => `言語 "${lang}" はこのワークスペースで設定されていません。先に "atc language add" で追加してください。`
   },
   defaultLangSuccess: {
     en: (lang: string) => `Default programming language successfully changed to: ${lang}`,
@@ -888,8 +888,8 @@ export const MESSAGES = {
     ja: '非インタラクティブ環境が検出されました。引数でデフォルトの言語名を指定してください。'
   },
   defaultLangNoLanguages: {
-    en: 'No languages configured in this workspace. Please run "atc init" or "atc add-lang".',
-    ja: 'このワークスペースには言語設定がありません。"atc init" または "atc add-lang" を実行してください。'
+    en: 'No languages configured in this workspace. Please run "atc init" or "atc language add".',
+    ja: 'このワークスペースには言語設定がありません。"atc init" または "atc language add" を実行してください。'
   },
   loginNonInteractive: {
     en: 'Non-interactive environment detected. Interactive login is not supported in this mode.',
